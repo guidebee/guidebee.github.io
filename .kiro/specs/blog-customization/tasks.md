@@ -82,7 +82,9 @@
   - Test all internal and external links
   - _Requirements: All_
 
-- [ ] 8. Deploy to GitHub Pages and final verification
+- [-] 8. Deploy to GitHub Pages and final verification
+
+
   - Commit all changes with descriptive commit messages
   - Push to GitHub repository
   - Monitor GitHub Actions for successful build
