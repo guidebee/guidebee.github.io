@@ -1,0 +1,38 @@
+# LinkedIn Portfolio Sync Configuration
+
+# LinkedIn profile URL to sync from
+profile_url: "https://www.linkedin.com/in/guidebee/"
+
+# Output directory for generated portfolio files
+output_directory: "_portfolio"
+
+# Filter configuration
+filters:
+  # Minimum date for experiences (YYYY-MM-DD format, optional)
+  min_date: null
+  
+  # Maximum date for experiences (YYYY-MM-DD format, optional)
+  max_date: null
+  
+  # Keywords to include (experiences must contain at least one, optional)
+  include_keywords: []
+  
+  # Keywords to exclude (experiences containing these will be filtered out, optional)
+  exclude_keywords: []
+  
+  # Whether to include volunteer work in portfolio
+  include_volunteer: true
+  
+  # Title patterns to match (regex patterns, optional)
+  title_patterns: []
+
+# Portfolio generation settings
+portfolio:
+  # Default image for portfolio items
+  default_image: "/images/default-portfolio.png"
+  
+  # Whether to include skills in portfolio items
+  include_skills: true
+  
+  # Whether to include certifications in portfolio items
+  include_certifications: true
