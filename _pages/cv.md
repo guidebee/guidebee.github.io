@@ -17,6 +17,8 @@ Innovative full-stack developer with over 20 years of experience in web applicat
 
 ### Languages
 * TypeScript, JavaScript
+* Rust
+* Go
 * C#
 * Python
 * C++
