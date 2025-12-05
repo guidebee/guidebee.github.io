@@ -1,17 +1,20 @@
 ---
-layout: post
+layout: single
 title: "Getting Started: Building a Solana Trading System from Prototype to Production"
 date: 2025-12-04
-categories: [solana, trading, development, hft]
-tags: [solana, dex, arbitrage, golang, typescript, hft]
-author: guidebee
+categories:
+  - solana
+  - trading
+  - development
+tags:
+  - solana
+  - dex
+  - arbitrage
+  - golang
+  - typescript
+  - hft
+excerpt: "Starting a journey to build a production-grade High-Frequency Trading (HFT) system on Solana. Currently have working arbitrage bots (~1.7s execution), aiming for sub-500ms execution with local pool math, Shredstream integration, and flash loans."
 ---
-
-# Getting Started: Building a Solana Trading System from Prototype to Production
-
-**Date:** December 4, 2025
-**Reading Time:** ~8 minutes
-**Project Phase:** Foundation (Week 1)
 
 ## TL;DR
 
@@ -124,7 +127,7 @@ After analyzing the prototypes and requirements, here's the stack:
 
 ## My Immediate Plan
 
-Following the optimization guide ([docs/08-optimization-guide.md](../docs/08-optimization-guide.md)), I'm tackling this in phases:
+Following the optimization guide documented in my project, I'm tackling this in phases:
 
 ### Phase 1: Quick Wins (This Week)
 
@@ -162,24 +165,25 @@ Target: 800ms → 200ms (8x total improvement)
 - Statistical arbitrage
 - Optional: Market making
 
-## Repository Highlights
+## Project Documentation
 
-The repository is well-documented with comprehensive guides:
+The project includes comprehensive documentation covering:
 
-### Core Documentation
+### Core Documentation Areas
 
-1. **[01-prototype-analysis.md](../docs/01-prototype-analysis.md)** - Analysis of existing prototypes
-2. **[02-production-architecture-plan.md](../docs/02-production-architecture-plan.md)** - Scanner → Planner → Executor architecture
-3. **[06-solo-developer-roadmap.md](../docs/06-solo-developer-roadmap.md)** - Realistic roadmap (MVP in 4 weeks)
-4. **[07-hft-architecture.md](../docs/07-hft-architecture.md)** - Sub-500ms execution architecture
-5. **[08-optimization-guide.md](../docs/08-optimization-guide.md)** ⭐ - Week-by-week optimization guide
+1. **Prototype Analysis** - Analysis of existing prototypes and what works
+2. **Production Architecture Plan** - Scanner → Planner → Executor architecture
+3. **Solo Developer Roadmap** - Realistic roadmap (MVP in 4 weeks)
+4. **HFT Architecture** - Sub-500ms execution architecture design
+5. **Optimization Guide** - Week-by-week optimization strategies
 
-### Reference Code
+### Reference Implementations
 
-The `references/` directory contains three working prototype systems:
-- `references/apps/` - Polyglot arbitrage with Go quote service
-- `references/trading-bots/` - Mature TypeScript trading bot
-- `references/solana-playground/` - Full-stack Next.js app with 150+ CLI tools
+The project includes three working prototype systems:
+
+- Polyglot arbitrage system with Go quote service
+- Mature TypeScript trading bot with proven patterns
+- Full-stack Next.js app with 150+ CLI tools
 
 These prototypes demonstrate proven patterns for transaction building, retry logic, wallet management, and more.
 
@@ -263,16 +267,12 @@ This week I'm focusing on:
 
 ---
 
-**Project Repository:** [solana-trading-system](https://github.com/guidebee/solana-trading-system)
 **Next Post:** Week 1 - Profiling and Quick Wins
 
 ## Connect
 
 - **GitHub:** [github.com/guidebee](https://github.com/guidebee)
-- **LinkedIn:** [Connect on LinkedIn](https://linkedin.com/in/your-linkedin-username)
-- **Questions?** Open an issue in the [project repo](https://github.com/guidebee/solana-trading-system/issues)
-
-Ready to optimize! 🚀
+- **LinkedIn:** [linkedin.com/in/guidebee](https://linkedin.com/in/guidebee)
 
 ---
 
