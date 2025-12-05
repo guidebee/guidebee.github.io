@@ -2,10 +2,9 @@
 layout: single
 title: "Getting Started: Building a Solana Trading System from Prototype to Production"
 date: 2025-12-04
+permalink: /posts/2025/12/getting-started-building-solana-trading-system/
 categories:
-  - solana
-  - trading
-  - development
+  - blog
 tags:
   - solana
   - dex
@@ -13,6 +12,7 @@ tags:
   - golang
   - typescript
   - hft
+  - trading
 excerpt: "Starting a journey to build a production-grade High-Frequency Trading (HFT) system on Solana. Currently have working arbitrage bots (~1.7s execution), aiming for sub-500ms execution with local pool math, Shredstream integration, and flash loans."
 ---
 
