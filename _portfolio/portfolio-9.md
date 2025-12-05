@@ -293,9 +293,9 @@ These components can be extracted and shared with the broader Solana development
 - 🎯 Sub-200ms end-to-end execution
 
 **Financial Milestones:**
-- 🎯 $30-80/day (Phase 3: Week 11)
-- 🎯 $100-250/day (Phase 4: Month 4)
-- 🎯 $500-1,200/day (Phase 5: Month 9)
+- 🎯 $250-500/month (Phase 3.5: Market viability minimum)
+- 🎯 $3-6k/month net (Phase 4: Most likely scenario)
+- 🎯 $5-10k/month net (Phase 5: With optimization, 30% probability)
 
 **Learning Milestones:**
 - Production-grade Rust development
