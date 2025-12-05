@@ -221,12 +221,14 @@ Professional HFT firms require $100k-300k monthly revenue to justify their $20k-
 
 ### Infrastructure & Costs
 
-**Development Phase:** $0/month (local Docker Compose)
-**Early Production:** $20-40/month (cloud VM)
-**Production Scale:** $70-100/month (bare metal server)
-**Optional Upgrade:** $250-500/month (paid ShredStream)
+**Development Phase:** $0/month (local Docker Compose, Dec 2025 - May 2026)
+**Early Production:** $20-40/month (cloud VM, Jun - Aug 2026)
+**Production Scale:** $70-100/month (bare metal server, Sep 2026+)
+**Optional Upgrade:** $250-500/month (paid ShredStream, only when profitable >$8k/mo)
 
-**Break-even:** Approximately $1,500-3,000/month in trading profits
+**Total 9-Month Cost:** $200-400 (negligible compared to profit potential)
+
+**Break-even:** Infrastructure costs are minimal; system is profitable at $250-500/month net (Phase 3.5 viability threshold)
 
 ### Learning Outcomes & Transferable Skills
 
