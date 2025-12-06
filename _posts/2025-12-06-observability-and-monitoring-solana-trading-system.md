@@ -153,7 +153,7 @@ Created `quote-service-dashboard.png` showing:
 - Success vs failure ratios
 - Active connections and resource usage
 
-![Quote Service Dashboard](../images/quote-service-dashboard.png)
+![Quote Service Dashboard](images/quote-service-dashboard.png)
 
 The dashboard provides real-time visibility into the quote-service performance, helping identify bottlenecks and optimize routing calculations.
 
