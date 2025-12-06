@@ -1,6 +1,6 @@
 ---
 title: "Jobseeker - AI-Powered Job Search Automation"
-excerpt: "Intelligent job search system using Claude AI to automatically scrape and analyze job postings<br/><img src='https://github.com/guidebee/jobseeker/raw/main/images/jobseeker.png' style='max-width: 100%; height: auto;'>"
+excerpt: "Intelligent job search system using Claude AI to automatically scrape and analyze job postings<br/><div style='text-align: center;'><img src='https://github.com/guidebee/jobseeker/raw/main/images/jobseeker.png'></div>"
 collection: portfolio
 ---
 

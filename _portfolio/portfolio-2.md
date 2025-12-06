@@ -1,6 +1,6 @@
 ---
 title: "Morse Code LoRa Walkie-Talkie"
-excerpt: "Open-source long-range, encrypted Morse code communication system using LoRa technology<br/><img src='https://raw.githubusercontent.com/guidebee/esp32morse/refs/heads/master/images/1643360782152.jfif' style='max-width: 100%; height: auto;'>"
+excerpt: "Open-source long-range, encrypted Morse code communication system using LoRa technology<br/><div style='text-align: center;'><img src='https://raw.githubusercontent.com/guidebee/esp32morse/refs/heads/master/images/1643360782152.jfif'></div>"
 collection: portfolio
 ---
 

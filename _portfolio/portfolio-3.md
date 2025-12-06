@@ -1,6 +1,6 @@
 ---
 title: "iRobot - OpenAI Gym for Android Games"
-excerpt: "C++ reimplementation of scrcpy as an OpenAI Gym environment for training RL agents on Android games<br/><img src='https://github.com/guidebee/irobot/raw/master/docs/irobot_android_new_arch.png' style='max-width: 100%; height: auto;'>"
+excerpt: "C++ reimplementation of scrcpy as an OpenAI Gym environment for training RL agents on Android games<br/><div style='text-align: center;'><img src='https://github.com/guidebee/irobot/raw/master/docs/irobot_android_new_arch.png'></div>"
 collection: portfolio
 ---
 

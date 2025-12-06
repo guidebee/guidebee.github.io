@@ -1,6 +1,6 @@
 ---
 title: "Unity King Derby Game on Solana"
-excerpt: "Blockchain-integrated mobile game demonstrating Solana wallet integration and NFT functionality<br/><img src='https://github.com/solplayground/UnityKingDerby/raw/main/Docs/racingsolana.gif?raw=true' style='max-width: 100%; height: auto;'>"
+excerpt: "Blockchain-integrated mobile game demonstrating Solana wallet integration and NFT functionality<br/><div style='text-align: center;'><img src='https://github.com/solplayground/UnityKingDerby/raw/main/Docs/racingsolana.gif?raw=true'></div>"
 collection: portfolio
 ---
 
