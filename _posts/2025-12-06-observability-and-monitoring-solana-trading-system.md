@@ -94,6 +94,8 @@ The event-preparer ensures that all NATS streams are properly configured before 
 
 Created a generic notification service that subscribes to NATS events and sends email alerts:
 
+![Notification Service](../images/notification.png)
+
 **Features:**
 - **NATS Integration**: Subscribes to critical system events via wildcard patterns
   - `system.lifecycle.>` - System start/shutdown
