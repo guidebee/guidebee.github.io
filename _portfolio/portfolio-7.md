@@ -1,6 +1,6 @@
 ---
 title: "Flappy Morsecode - Gamified Morse Code Learning"
-excerpt: "Educational game combining Flappy Bird mechanics with interactive Morse code training<br/><img src='https://media.licdn.com/dms/image/v2/C5612AQE3ksEREB1Alg/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1520139383369?e=1766620800&v=beta&t=DVyw-d7r2rX7Xn8IYf87vAOFC-eAq1zoGOmJLQRfHB4'>"
+excerpt: "Educational game combining Flappy Bird mechanics with interactive Morse code training<br/><img src='https://media.licdn.com/dms/image/v2/C5612AQE3ksEREB1Alg/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1520139383369?e=1766620800&v=beta&t=DVyw-d7r2rX7Xn8IYf87vAOFC-eAq1zoGOmJLQRfHB4' style='max-width: 100%; height: auto;'>"
 collection: portfolio
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: "Solana Playground"
-excerpt: "Comprehensive DeFi platform for trading, exchanging tokens, and managing NFTs on Solana blockchain<br/><img src='https://media.licdn.com/dms/image/v2/C5622AQHT_miT0nrOWA/feedshare-shrink_2048_1536/feedshare-shrink_2048_1536/0/1673677088695?e=1766620800&v=beta&t=rYdjnDVSFFDolqC7SybPuch8Arw7B5_OpOSVty5HIwU'>"
+excerpt: "Comprehensive DeFi platform for trading, exchanging tokens, and managing NFTs on Solana blockchain<br/><img src='https://media.licdn.com/dms/image/v2/C5622AQHT_miT0nrOWA/feedshare-shrink_2048_1536/feedshare-shrink_2048_1536/0/1673677088695?e=1766620800&v=beta&t=rYdjnDVSFFDolqC7SybPuch8Arw7B5_OpOSVty5HIwU' style='max-width: 100%; height: auto;'>"
 collection: portfolio
 ---
 
