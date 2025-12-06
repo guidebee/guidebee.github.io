@@ -1,6 +1,6 @@
 ---
 title: "Australia ASX Gym Environment"
-excerpt: "OpenAI Gym-based virtual stock exchange platform with 10 years of real ASX market data<br/><img src='https://media.licdn.com/dms/image/sync/v2/C5627AQGj1ST2YUjAGA/articleshare-shrink_480/articleshare-shrink_480/0/1764289126509?e=1765551600&v=beta&t=Rye9RsJS4D0zWUehNqFmKx8c9D3DUrJE9c-MwkBI2Lk'>"
+excerpt: "OpenAI Gym-based virtual stock exchange platform with 10 years of real ASX market data<br/><img src='https://github.com/guidebee/asx_gym/raw/master/docs/env_anim.gif'>"
 collection: portfolio
 ---
 
