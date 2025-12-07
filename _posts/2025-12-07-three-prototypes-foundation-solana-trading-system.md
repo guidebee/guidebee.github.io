@@ -360,7 +360,6 @@ Will it be profitable? The market will decide. Will I build something substantia
 - [Prototype Analysis](https://github.com/guidebee/solana-trading-system/blob/main/docs/01-prototype-analysis.md) - Detailed technical breakdown
 - [Production Architecture Plan](https://github.com/guidebee/solana-trading-system/blob/main/docs/02-production-architecture-plan.md) - System design
 
-**Next Post:** Scanner Service Implementation
 
 ## Connect
 
