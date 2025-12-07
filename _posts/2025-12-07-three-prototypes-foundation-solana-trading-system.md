@@ -31,6 +31,8 @@ Over the past two years specifically, I've focused on trading systems, building 
 
 This wasn't a linear journey. I started with one approach, learned from its limitations, built another, discovered new patterns, and evolved to a third. Each iteration answered specific questions:
 
+![Arb Transactions](../images/arb-transactions.png)
+
 **Prototype 1: Can I build a working arbitrage bot?**
 - Answer: Yes, but it's too slow (~1.7-2.5s execution)
 - Key learning: Jupiter API latency (100-300ms) kills competitiveness
