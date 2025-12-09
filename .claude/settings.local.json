@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dir C:Tradingguidebee.github.ioposts2025 /s /b)"
     ],
     "deny": [],
     "ask": []
