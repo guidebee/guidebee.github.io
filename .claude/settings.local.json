@@ -3,7 +3,8 @@
     "allow": [
       "Bash(find:*)",
       "Bash(dir C:Tradingguidebee.github.ioposts2025 /s /b)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
