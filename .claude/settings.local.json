@@ -4,7 +4,10 @@
       "Bash(find:*)",
       "Bash(dir C:Tradingguidebee.github.ioposts2025 /s /b)",
       "Bash(cat:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(dir \"c:\\Trading\\guidebee.github.io\\_posts\" /b /o-d)",
+      "Bash(wc:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
