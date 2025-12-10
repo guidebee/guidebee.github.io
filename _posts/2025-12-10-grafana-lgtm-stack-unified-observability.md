@@ -594,28 +594,28 @@ See the [Quick Start Guide](https://github.com/guidebee/solana-trading-system/bl
 
 ## Next Steps
 
-### Phase 1: Stability (Week 1)
+### Phase 1: Stability 
 - [x] Migrate Promtail to Alloy
 - [x] Integrate Mimir, Tempo, Pyroscope
 - [x] Update Events Dashboard
 - [ ] Monitor resource usage and performance
 - [ ] Update remaining dashboards to use Mimir
 
-### Phase 2: Instrumentation (Week 2-3)
+### Phase 2: Instrumentation 
 - [ ] Add OpenTelemetry SDK to TypeScript services
 - [ ] Add OpenTelemetry SDK to Go services (quote-service)
 - [ ] Implement NATS trace propagation (context in event headers)
 - [ ] Add Pyroscope profiling to quote-service
 - [ ] Verify end-to-end trace collection
 
-### Phase 3: Advanced Features (Week 4+)
+### Phase 3: Advanced Features 
 - [ ] Configure Grafana alerting rules
 - [ ] Set up SLO (Service Level Objectives) tracking
 - [ ] Implement exemplars (metrics → traces linking)
 - [ ] Create unified dashboards with all signal types
 - [ ] Performance profiling optimization
 
-### Phase 4: Production (Future)
+### Phase 4: Production 
 - [ ] Evaluate Grafana Cloud migration
 - [ ] Configure long-term retention policies
 - [ ] Set up multi-region observability
