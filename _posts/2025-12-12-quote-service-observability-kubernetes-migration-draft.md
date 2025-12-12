@@ -40,6 +40,8 @@ Harry, if you're reading this from somewhere in China (hopefully on decent WiFi!
 
 Watching you grow into an independent young adult has been one of the greatest joys of my life. As I build this trading system, I'm reminded that the most important investments we make aren't in markets or technology - they're in the people we love and the experiences we share.
 
+![Events Dashboard](../images/harry.png)
+
 Now, let's get back to the technical work - but this context reminds me why we build these systems: to create opportunities and freedom for the next generation.
 
 ---
