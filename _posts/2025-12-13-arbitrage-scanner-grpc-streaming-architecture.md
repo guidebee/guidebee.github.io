@@ -341,29 +341,6 @@ Integration with existing monitoring stack:
 
 Protocol Buffers provide compile-time type checking across Go and TypeScript, preventing runtime errors from schema mismatches.
 
-## Next Steps
-
-### Immediate (This Week)
-
-1. **Deploy and Test**: Run scanner-service alongside quote-service in Docker Compose
-2. **Validate Detection**: Confirm arbitrage opportunities are detected correctly
-3. **Benchmark Performance**: Measure actual latencies vs targets
-4. **24-Hour Stability Test**: Ensure stream reliability over extended periods
-
-### Short-Term (Next 2 Weeks)
-
-1. **Optimize Execution Path**: Implement blockhash caching and transaction pre-signing
-2. **Shredstream Integration**: Detect pool changes 400ms earlier via Jito's block engine
-3. **Flash Loan Integration**: Enable capital-efficient arbitrage without upfront funds
-4. **Multi-Wallet Execution**: Parallelize trades for higher throughput
-
-### Medium-Term (Next Month)
-
-1. **Expand Token Coverage**: Add more DEXs and token pairs based on profitability data
-2. **Machine Learning**: Train models to predict opportunity profitability and optimal execution timing
-3. **Advanced Routing**: Implement triangular arbitrage and multi-hop strategies
-4. **Risk Management**: Add position limits, maximum slippage controls, and kill switches
-
 ## Lessons Learned
 
 ### Architecture Matters
@@ -405,9 +382,9 @@ This is the foundation for a high-frequency trading system that can compete with
 
 ## Technical Documentation
 
-- [Arbitrage Scanner Implementation Guide](https://github.com/yourusername/solana-trading-system/blob/main/docs/09-arbitrage-scanner-implementation.md)
-- [Quote Service Architecture](https://github.com/yourusername/solana-trading-system/tree/main/go/cmd/quote-service)
-- [Scanner Service Implementation](https://github.com/yourusername/solana-trading-system/tree/main/ts/apps/scanner-service)
+- [Arbitrage Scanner Implementation Guide](https://github.com/guidebee/solana-trading-system/blob/main/docs/09-arbitrage-scanner-implementation.md)
+- [Quote Service Architecture](https://github.com/guidebee/solana-trading-system/tree/main/go/cmd/quote-service)
+- [Scanner Service Implementation](https://github.com/guidebee/solana-trading-system/tree/main/ts/apps/scanner-service)
 
 ---
 
