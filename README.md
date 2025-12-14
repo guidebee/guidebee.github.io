@@ -1,19 +1,41 @@
-# Academic Pages
-**Academic Pages is a GitHub Pages template for personal and professional portfolio-oriented websites.**
+# Solana Trading System Development Blog
 
-![Academic Pages template example](images/themes/homepage-light.png "Academic Pages template example")
+**A technical blog documenting the development of a production-grade high-frequency trading system on Solana.**
 
-# Getting Started
+This blog chronicles the journey of building a complete trading infrastructure from scratch, covering architecture decisions, performance optimizations, observability, and real-world challenges.
 
-1. Register a GitHub account if you don't have one and confirm your e-mail (required!)
-1. Click the "Use this template" button in the top right.
-1. On the "New repository" page, enter your public repository name as "[your GitHub username].github.io", which will also be your website's URL.
-1. Set site-wide configuration and add your content.
-1. Upload any files (like PDFs, .zip files, etc.) to the `files/` directory. They will appear at https://[your GitHub username].github.io/files/example.pdf.
-1. Check status by going to the repository settings, in the "GitHub pages" section
-1. (Optional) Use the Jupyter notebooks or python scripts in the `markdown_generator` folder to generate markdown files for publications and talks from a TSV file.
+## About This Blog
 
-See more info at https://guidebee.github.io/
+This site documents the development of an open-source Solana trading system. Topics covered include:
+
+- **Architecture**: Cross-language event systems, microservices, gRPC streaming
+- **Performance**: Sub-500ms execution latency, quote caching, real-time data pipelines
+- **Observability**: Prometheus metrics, Grafana dashboards, OpenTelemetry tracing
+- **Trading Strategies**: Arbitrage detection, market making, DCA, grid trading
+- **Infrastructure**: NATS JetStream, Docker, Kubernetes, RPC pooling
+- **Solana Development**: DEX integration (Jupiter, Raydium, Orca), Pyth oracles, WebSocket subscriptions
+
+**Live Site**: https://guidebee.github.io
+
+**Related Repository**: The trading system code is at C:\Trading\solana-trading-system (local development)
+
+## Template Attribution
+
+This blog is built using the **[Academic Pages](https://github.com/academicpages/academicpages.github.io)** template, a GitHub Pages template for personal and professional portfolio-oriented websites. Academic Pages is based on [Minimal Mistakes Jekyll Theme](https://mmistakes.github.io/minimal-mistakes/) by Michael Rose.
+
+## Getting Started
+
+### Writing Blog Posts
+
+See detailed instructions in [CLAUDE.md](CLAUDE.md) for:
+- Blog post structure and naming conventions
+- Image organization
+- Jekyll front matter templates
+- Custom blog-writer skill for Claude Code
+
+**Quick Start**: Use Claude Code with "write a blog post about [topic]" to automatically create properly formatted posts.
+
+See site info at https://guidebee.github.io/
 
 ## Running locally
 
@@ -93,4 +115,22 @@ Unfortunately, one logistical issue with a template theme like Academic Pages th
 
 [![GitHub stars](https://img.shields.io/github/stars/academicpages/guidebee.github.io)](https://github.com/academicpages/guidebee.github.io)
 [![GitHub forks](https://img.shields.io/github/forks/academicpages/guidebee.github.io)](https://github.com/academicpages/guidebee.github.io/fork)
+</div>
+
+## Connect
+
+Building open-source Solana trading infrastructure:
+
+- **GitHub**: [github.com/guidebee](https://github.com/guidebee)
+- **LinkedIn**: [linkedin.com/in/jamesshen](https://www.linkedin.com/in/jamesshen)
+- **Blog**: [guidebee.github.io](https://guidebee.github.io)
+
+---
+<div align="center">
+
+[![GitHub license](https://img.shields.io/github/license/guidebee/guidebee.github.io?color=blue)](https://github.com/guidebee/guidebee.github.io/blob/master/LICENSE)
+[![Live Site](https://img.shields.io/badge/live-guidebee.github.io-brightgreen)](https://guidebee.github.io)
+
+*Building open-source Solana trading infrastructure, one commit at a time.*
+
 </div>

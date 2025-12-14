@@ -7,7 +7,8 @@
       "Bash(ls:*)",
       "Bash(dir \"c:\\Trading\\guidebee.github.io\\_posts\" /b /o-d)",
       "Bash(wc:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git -C \"c:/Trading/guidebee.github.io\" status README.md)"
     ],
     "deny": [],
     "ask": []
