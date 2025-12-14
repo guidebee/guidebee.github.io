@@ -35,16 +35,34 @@ Today's focus was on building a production-grade arbitrage scanner that eliminat
 
 Our current arbitrage prototype in `references/tradingBots` is **actually profitable** - it successfully detects and executes cross-DEX arbitrage opportunities on Solana. The database shows positive returns, proving the strategy works.
 
-But when we profiled the execution, we found a critical bottleneck:
+But when we profiled the execution, we found critical bottlenecks that prevent consistent profitability:
 
-**Quote Fetching Takes 800-1500ms (47% of total execution time)**
+**Problem 1: Slow Quote Fetching (800-1500ms)**
 
 The prototype makes sequential HTTP requests to Jupiter's quote API for each arbitrage check:
 - Request 1: Get quote for Token A → Token B (400ms)
 - Request 2: Get quote for Token B → Token A (400ms)
 - Total: 800ms+ per opportunity
 
-This is the **single biggest bottleneck** preventing faster execution.
+**Problem 2: The Slippage Dilemma**
+
+For arbitrage to be consistently profitable, the merged route must guarantee positive returns. This creates a critical constraint:
+
+- **High slippage tolerance**: Trades execute, but slippage eats the profit (often resulting in net losses)
+- **Zero slippage requirement**: Guarantees profitability calculation accuracy, but causes **high transaction failure rates** due to strict price requirements
+
+The prototype's slow quote fetching (800-1500ms) makes this worse: by the time the trade executes, pool states have changed, making zero-slippage trades fail frequently. **You can't have accurate profit calculations AND reliable execution with stale quotes.**
+
+**Why Sub-500ms Matters for Production HFT**
+
+This is why achieving sub-500ms total execution time is **absolutely critical** for a production high-frequency trading system:
+
+1. **Fresh quotes** (10-20ms old) mean less price movement between detection and execution
+2. **Tight slippage** (near-zero) becomes viable because quotes reflect current pool state
+3. **Higher success rate** as the execution price matches the quote price
+4. **Predictable profitability** - what you calculate is what you get
+
+Without sub-500ms latency, you're forced to choose between accuracy (zero slippage, high failure rate) or reliability (high slippage, unpredictable profitability). With sub-500ms latency, you can have both.
 
 ### The Solution: Push Instead of Pull
 
