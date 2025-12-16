@@ -242,6 +242,29 @@ func (s *GRPCQuoteServer) StreamQuotes(
 - **Non-Blocking Sends**: Goroutine handles quote generation independently
 - **Error Handling**: Returns error on send failure, triggering client reconnection
 
+### Dual Quote Source Strategy
+
+The quote service supports two quote generation methods, indicated by the `provider` field in the response:
+
+**1. Local Pool Math (`provider: "local"`)**
+- Direct calculation from on-chain pool state
+- Protocols: Raydium AMM/CLMM/CPMM, Orca, Meteora, Pump.fun, Whirlpool
+- Advantages: Zero API costs, sub-10ms calculation time, no rate limits
+- Disadvantages: Requires maintaining pool state, complex math implementations
+
+**2. External API Streaming (`provider: "jupiter"`, `provider: "okx"`, etc.)**
+- Aggregated quotes from external services
+- Sources: Jupiter API, OKX DEX, other aggregators
+- Advantages: Simple integration, handles routing complexity, broader DEX coverage
+- Disadvantages: API rate limits, network latency, potential costs
+
+The quote service **automatically selects the best source** for each pair:
+- High-liquidity LST pairs: Prefer local pool math (faster, cheaper)
+- Complex multi-hop routes: Use Jupiter API (better routing)
+- Fallback strategy: If local calculation fails, fetch from external API
+
+This hybrid approach balances **performance, cost, and reliability**.
+
 ### Quote Cache Integration
 
 The gRPC server reads from the existing `QuoteCache` that's already being refreshed:
@@ -431,9 +454,13 @@ This is a **two-stage validation model**:
 
 ## Token Pair Optimization Strategy
 
-### LST Token Selection
+### Complete Token Pair Configuration
 
-We monitor 8 Liquid Staking Token (LST) pairs for arbitrage:
+The scanner monitors three categories of token pairs configured in [ts/apps/scanner-service/src/config/token-pairs.ts](https://github.com/guidebee/solana-trading-system/tree/main/ts/apps/scanner-service):
+
+#### 1. LST (Liquid Staking Token) Pairs
+
+We monitor 8 LST tokens for SOL arbitrage:
 
 | Token | Mint Address | Liquidity | Why Monitor? |
 |-------|-------------|-----------|--------------|
@@ -446,7 +473,40 @@ We monitor 8 Liquid Staking Token (LST) pairs for arbitrage:
 | **bbSOL** | `Bybit2v...` | $15M+ | Bybit staking |
 | **bonkSOL** | `BonK1Yh...` | $5M+ | Community token |
 
-**Pair Generation**: Bidirectional (SOL ↔ LST) = 8 tokens × 2 directions = **16 pairs**
+**LST Pairs**: Bidirectional (SOL ↔ LST) = 8 tokens × 2 directions = **16 pairs**
+
+#### 2. SOL/Stablecoin Pairs
+
+Direct SOL-to-stablecoin pairs for liquidity and volatility arbitrage:
+
+| Input | Output | Mint Addresses | Use Case |
+|-------|--------|---------------|----------|
+| **SOL** | **USDC** | `So111111... ↔ EPjFWd...` | Primary SOL liquidity pair |
+
+**SOL/Stablecoin Pairs**: 1 token × 2 directions = **2 pairs** (SOL→USDC, USDC→SOL)
+
+#### 3. Stablecoin Pairs
+
+Cross-stablecoin arbitrage for delta-neutral strategies:
+
+| Input | Output | Mint Addresses | Use Case |
+|-------|--------|---------------|----------|
+| **USDC** | **USDT** | `EPjFWd... ↔ Es9vMF...` | Stablecoin peg arbitrage |
+
+**Stablecoin Pairs**: 1 pair × 2 directions = **2 pairs** (USDC→USDT, USDT→USDC)
+
+### Total Pair Count
+
+```
+LST Pairs:              16 pairs (8 tokens × 2 directions)
+SOL/Stablecoin Pairs:    2 pairs (1 pair × 2 directions)
+Stablecoin Pairs:        2 pairs (1 pair × 2 directions)
+─────────────────────────────────────────────────────────
+Total Forward Pairs:    10 pairs
+Total Pairs (with reverse): 20 pairs
+```
+
+All pairs have auto-reverse enabled, meaning the quote service automatically generates reverse quotes (e.g., if you request SOL→JitoSOL, it also provides JitoSOL→SOL).
 
 ### Amount Range Configuration
 
@@ -485,17 +545,22 @@ export const AMOUNT_RANGES: AmountRange[] = [
 ### Quote Volume Calculation
 
 ```
-LST Pairs:     16 pairs (8 tokens × 2 directions)
+Total Pairs:   20 pairs (16 LST + 2 SOL/Stable + 2 Stable/Stable)
 Amounts:       39 amounts per pair
-────────────────────────────────────────────────
-Total Quotes:  16 × 39 = 624 quotes per refresh
+─────────────────────────────────────────────────────────────────
+Total Quotes:  20 × 39 = 780 quotes per refresh
 
 Refresh Rate:  Every 5 seconds (gRPC stream)
-────────────────────────────────────────────────
-Quote Rate:    624 quotes / 5s = ~125 quotes/second
+─────────────────────────────────────────────────────────────────
+Quote Rate:    780 quotes / 5s = ~156 quotes/second
 ```
 
-**Scalability**: The gRPC infrastructure supports **1000+ quotes/second**, so we have **8x headroom** for adding more pairs.
+**Configuration Flags**: The token pair categories are controlled by configuration flags:
+- `monitorLSTpairs`: Enables/disables 16 LST pairs
+- `monitorSOLStablecoinPairs`: Enables/disables 2 SOL/stablecoin pairs
+- `monitorStablecoinPairs`: Enables/disables 2 stablecoin pairs
+
+**Scalability**: The gRPC infrastructure supports **1000+ quotes/second**, so we have **6.4x headroom** for adding more pairs or amounts.
 
 ## Performance Optimization for High-Frequency Trading
 
@@ -508,7 +573,7 @@ Quote Rate:    624 quotes / 5s = ~125 quotes/second
 | **Profit Calculation** | 2-3ms | <5ms | ✅ Achieved |
 | **NATS Publish** | 1ms | <2ms | ✅ Achieved |
 | **Total Detection Latency** | 10-30ms | <50ms | ✅ Achieved |
-| **Throughput** | 125 quotes/s | 1000+ quotes/s | 🚧 In Progress |
+| **Throughput** | 156 quotes/s | 1000+ quotes/s | 🚧 In Progress |
 
 ### Bottleneck Analysis
 
@@ -582,7 +647,7 @@ scanner_nats_publish_errors_total{subject}
 ```json
 {
   "status": "healthy",
-  "cache_size": 624,
+  "cache_size": 780,
   "last_refresh": "2025-12-16T10:30:00Z",
   "active_subscriptions": 3,
   "uptime_seconds": 3600,
@@ -597,7 +662,7 @@ scanner_nats_publish_errors_total{subject}
   "grpc_connected": true,
   "nats_connected": true,
   "pyth_connected": true,
-  "quote_cache_size": 624,
+  "quote_cache_size": 780,
   "opportunities_detected": 15,
   "uptime_seconds": 3600
 }
@@ -618,8 +683,9 @@ scanner_nats_publish_errors_total{subject}
 ┌─────────────────────────────────────────────────────────────────┐
 │              Quote Service (Go) - Port 50051 (gRPC)             │
 │  • RPC Pool (73 endpoints) + WebSocket Pool (5 connections)    │
-│  • Quote Cache (624 quotes) refreshed every 30s + real-time    │
-│  • Pool math for 6 protocols (Raydium AMM/CLMM/CPMM, etc.)    │
+│  • Quote Cache (780 quotes) refreshed every 30s + real-time    │
+│  • Local pool math for 6 protocols (Raydium AMM/CLMM/CPMM)    │
+│  • External quote streaming (Jupiter API, OKX, etc.)           │
 │  • Pyth oracle integration for price feeds                     │
 └─────────────────────────────────────────────────────────────────┘
                               │ gRPC Stream (10-20ms)
