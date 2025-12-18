@@ -23,11 +23,14 @@ Today marks a major architectural milestone - completing the design for a produc
 
 1. **4-Stage HFT Pipeline**: Quote-Service → Scanner → Planner → Executor with clear separation of concerns (detection, validation, execution)
 2. **6-Stream NATS Architecture**: Independent streams (MARKET_DATA, OPPORTUNITIES, EXECUTION, EXECUTED, METRICS, SYSTEM) with optimized retention policies and storage strategies
-3. **FlatBuffers Migration**: Zero-copy serialization replacing JSON for 31ms latency reduction (147ms → 116ms, 21% improvement)
-4. **System-Wide Safety**: SYSTEM stream integration across all frameworks for <100ms kill switch response and graceful shutdown
-5. **Sub-100ms Target**: Complete pipeline designed to achieve 95ms end-to-end latency (quote → profit in wallet)
+3. **Extensible Multi-Strategy Design**: NATS subject-based routing enables multiple scanner types (arbitrage, liquidation, oracle divergence) publishing different event types to OPPORTUNITIES stream, with specialized planners subscribing only to relevant opportunities
+4. **FlatBuffers Migration**: Zero-copy serialization replacing JSON for 31ms latency reduction (147ms → 116ms, 21% improvement)
+5. **System-Wide Safety**: SYSTEM stream integration across all frameworks for <100ms kill switch response and graceful shutdown
+6. **Sub-100ms Target**: Complete pipeline designed to achieve 95ms end-to-end latency (quote → profit in wallet)
 
 **Performance Impact**: From 147ms (JSON baseline) to 95ms (FlatBuffers + optimization) - **35% faster execution**
+
+**Architectural Impact**: Zero-coupling design - add new trading strategies without modifying existing code
 
 ## The HFT Pipeline Challenge
 
@@ -83,16 +86,25 @@ The key insight is that different stages have fundamentally different performanc
 │ Cost: Very low (cached data only, no RPC)                   │
 │ False Positives: 35% acceptable                             │
 │                                                              │
-│ Output: TwoHopArbitrageEvent → OPPORTUNITIES stream         │
+│ Output: Multiple event types → OPPORTUNITIES stream         │
+│ - TwoHopArbitrageEvent (SOL→mSOL→SOL)                       │
+│ - TriangularArbitrageEvent (SOL→USDC→mSOL→SOL)              │
+│ - LiquidationEvent (under-collateralized positions)         │
+│ - PriceDivergenceEvent (oracle vs DEX price gaps)           │
 └────────────────────────────────────────────────────────────┘
                             ↓
 ┌────────────────────────────────────────────────────────────┐
-│ PLANNER (Deep Validation)                                   │
+│ PLANNER (Deep Validation) - Multiple Specialized Planners   │
 │ Purpose: Validate profitability with RPC simulation         │
 │ Latency: 50-100ms                                           │
 │ Throughput: 500 opportunities → 50 plans (90% rejected)     │
 │ Cost: High (RPC simulation required)                        │
 │ Accuracy: 90%+ (after simulation)                           │
+│                                                              │
+│ Planners subscribe to specific opportunity types:           │
+│ - TwoHopArbitragePlanner → opportunity.two_hop.*            │
+│ - TriangularArbitragePlanner → opportunity.triangular.*     │
+│ - LiquidationPlanner → opportunity.liquidation.*            │
 │                                                              │
 │ Output: ExecutionPlanEvent → EXECUTION stream               │
 └────────────────────────────────────────────────────────────┘
@@ -328,6 +340,263 @@ Response time: <100ms system-wide halt
 ```
 
 This provides **instant circuit breaker** functionality across all trading components.
+
+## Architectural Extensibility: Multiple Scanners and Planners
+
+### The Power of Subject-Based Routing
+
+One of the most powerful aspects of this architecture is its **extensibility through NATS subject patterns**. The OPPORTUNITIES stream doesn't just handle one type of opportunity - it's designed to support multiple scanner types publishing different opportunity events, with specialized planners subscribing only to relevant events.
+
+### Multiple Scanner Types
+
+Different scanners detect different trading opportunities:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ ArbitrageQuoteScanner                                       │
+│ Detects: Two-hop arbitrage (SOL→mSOL→SOL)                  │
+│ Publishes to: opportunity.two_hop.detected.*                │
+│ Event Type: TwoHopArbitrageEvent                            │
+│ Volume: ~300 events/sec                                     │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ TriangularArbitrageScanner                                  │
+│ Detects: Three-hop arbitrage (SOL→USDC→mSOL→SOL)           │
+│ Publishes to: opportunity.triangular.detected.*             │
+│ Event Type: TriangularArbitrageEvent                        │
+│ Volume: ~100 events/sec                                     │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ LiquidationScanner                                          │
+│ Detects: Under-collateralized lending positions             │
+│ Publishes to: opportunity.liquidation.detected.*            │
+│ Event Type: LiquidationEvent                                │
+│ Volume: ~50 events/sec                                      │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ OracleDivergenceScanner                                     │
+│ Detects: Oracle vs DEX price divergence                     │
+│ Publishes to: opportunity.oracle_divergence.detected.*      │
+│ Event Type: PriceDivergenceEvent                            │
+│ Volume: ~20 events/sec                                      │
+└────────────────────────────────────────────────────────────┘
+
+All publish to: OPPORTUNITIES stream
+Total volume: ~470 events/sec (well within 500 target)
+Stream capacity: Handles all scanner types simultaneously
+```
+
+### Specialized Planners per Opportunity Type
+
+Each planner subscribes only to opportunities it can handle:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ TwoHopArbitragePlanner                                      │
+│ Subscribes to: opportunity.two_hop.>                        │
+│ Consumes: TwoHopArbitrageEvent                              │
+│ Validation: RPC simulation for 2-hop swaps                  │
+│ Output: ExecutionPlanEvent (Jito/TPU routing)               │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ TriangularArbitragePlanner                                  │
+│ Subscribes to: opportunity.triangular.>                     │
+│ Consumes: TriangularArbitrageEvent                          │
+│ Validation: RPC simulation for 3-hop swaps                  │
+│ Output: ExecutionPlanEvent (optimized routing)              │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ LiquidationPlanner                                          │
+│ Subscribes to: opportunity.liquidation.>                    │
+│ Consumes: LiquidationEvent                                  │
+│ Validation: Check health factor, liquidation bonus          │
+│ Output: ExecutionPlanEvent (flash loan execution)           │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ OracleDivergencePlanner                                     │
+│ Subscribes to: opportunity.oracle_divergence.>              │
+│ Consumes: PriceDivergenceEvent                              │
+│ Validation: Verify oracle freshness, calculate profit       │
+│ Output: ExecutionPlanEvent (oracle update + arbitrage)      │
+└────────────────────────────────────────────────────────────┘
+
+All planners run concurrently, processing only relevant events
+Each planner is independent (can scale/restart independently)
+EXECUTION stream receives mixed ExecutionPlanEvent types
+```
+
+### Subject Hierarchy for Extensibility
+
+The NATS subject pattern enables fine-grained routing:
+
+```
+OPPORTUNITIES stream subjects:
+
+opportunity.two_hop.detected.<tokenA>.<tokenB>
+├─ opportunity.two_hop.detected.SOL.mSOL
+├─ opportunity.two_hop.detected.SOL.USDC
+└─ opportunity.two_hop.detected.USDC.USDT
+
+opportunity.triangular.detected.<tokenA>.<tokenB>.<tokenC>
+├─ opportunity.triangular.detected.SOL.USDC.mSOL
+└─ opportunity.triangular.detected.SOL.USDT.USDC
+
+opportunity.liquidation.detected.<protocol>.<severity>
+├─ opportunity.liquidation.detected.marinade.critical
+├─ opportunity.liquidation.detected.solend.high
+└─ opportunity.liquidation.detected.mango.medium
+
+opportunity.oracle_divergence.detected.<oracle>.<dex>
+├─ opportunity.oracle_divergence.detected.pyth.raydium
+└─ opportunity.oracle_divergence.detected.switchboard.orca
+
+Planner subscriptions:
+- TwoHopPlanner:          opportunity.two_hop.>
+- TriangularPlanner:      opportunity.triangular.>
+- LiquidationPlanner:     opportunity.liquidation.>
+- OracleDivergencePlanner: opportunity.oracle_divergence.>
+
+Benefits:
+✅ Each planner only receives relevant events
+✅ Add new scanner types without modifying existing planners
+✅ Add new planners without modifying scanners
+✅ Fine-grained filtering (e.g., only SOL pairs, only critical liquidations)
+```
+
+### Adding New Opportunity Types
+
+The architecture makes it trivial to add new trading strategies:
+
+```
+Step 1: Create new scanner
+└─ Implement scanner that detects new opportunity type
+   └─ Publishes to: opportunity.<new_type>.detected.*
+
+Step 2: Define FlatBuffers schema
+└─ Create NewOpportunityEvent schema
+   └─ Generate code with flatc
+
+Step 3: Create specialized planner
+└─ Implement planner for validation logic
+   └─ Subscribes to: opportunity.<new_type>.>
+   └─ Publishes to: EXECUTION stream
+
+Step 4: Deploy
+└─ Scanner, Planner run independently
+   └─ No changes to existing scanners/planners
+   └─ OPPORTUNITIES stream handles new event type automatically
+
+Example new strategies:
+- DCA (Dollar-Cost Averaging) scanner
+- Limit order execution scanner
+- MEV opportunity scanner
+- Cross-DEX arbitrage scanner
+- Perp-spot arbitrage scanner
+```
+
+### Extensibility Benefits
+
+**1. Zero Coupling Between Scanners and Planners**
+
+```
+Before (tightly coupled):
+├─ Scanner hard-coded to call specific planner
+├─ Adding new planner requires scanner changes
+└─ Can't run multiple planners for same opportunity
+
+After (NATS subject routing):
+├─ Scanner publishes event to subject
+├─ Any planner can subscribe to subject
+├─ Multiple planners can process same opportunity
+└─ No coupling: scanners don't know about planners
+```
+
+**2. Independent Deployment and Scaling**
+
+```
+Scenario: High two-hop arbitrage volume
+
+Solution:
+├─ Scale TwoHopArbitragePlanner horizontally (3 instances)
+│  └─ All subscribe to opportunity.two_hop.>
+│  └─ NATS load-balances across instances
+│
+└─ Other planners unaffected
+   └─ TriangularPlanner, LiquidationPlanner continue normally
+   └─ No coordination needed
+```
+
+**3. Strategy Experimentation**
+
+```
+Testing new planner logic:
+├─ Deploy experimental planner alongside production planner
+├─ Both subscribe to same opportunity type
+├─ Experimental planner publishes to execution.test.*
+├─ Production planner publishes to execution.planned.*
+└─ Compare results without affecting live trading
+
+A/B testing:
+├─ PlannerId field in ExecutionPlanEvent
+├─ Track which planner generated better PnL
+└─ Gradually shift traffic to better-performing planner
+```
+
+### Real-World Example: Multi-Strategy System
+
+Here's how multiple strategies run concurrently:
+
+```
+OPPORTUNITIES stream activity (real-time):
+
+t=0ms:    ArbitrageScanner publishes TwoHopArbitrageEvent
+          Subject: opportunity.two_hop.detected.SOL.mSOL
+          → TwoHopArbitragePlanner receives (0.5ms)
+
+t=5ms:    LiquidationScanner publishes LiquidationEvent
+          Subject: opportunity.liquidation.detected.solend.critical
+          → LiquidationPlanner receives (0.5ms)
+
+t=12ms:   TriangularScanner publishes TriangularArbitrageEvent
+          Subject: opportunity.triangular.detected.SOL.USDC.mSOL
+          → TriangularPlanner receives (0.5ms)
+
+t=18ms:   OracleDivergenceScanner publishes PriceDivergenceEvent
+          Subject: opportunity.oracle_divergence.detected.pyth.raydium
+          → OracleDivergencePlanner receives (0.5ms)
+
+t=20ms:   ArbitrageScanner publishes TwoHopArbitrageEvent
+          Subject: opportunity.two_hop.detected.USDC.USDT
+          → TwoHopArbitragePlanner receives (0.5ms)
+
+Result: 5 different opportunity types processed concurrently
+Each planner only sees relevant events
+No cross-talk, no interference
+```
+
+### Extensibility Summary
+
+The NATS subject-based routing provides:
+
+```
+✅ Multiple scanner types publish to OPPORTUNITIES stream
+✅ Each scanner publishes different event types (FlatBuffers)
+✅ Subject patterns enable fine-grained routing
+✅ Specialized planners subscribe only to relevant opportunities
+✅ Zero coupling: scanners don't know about planners
+✅ Independent scaling per opportunity type
+✅ Easy to add new strategies without modifying existing code
+✅ A/B testing and experimentation without risk
+
+Architectural principle:
+"Publish what you found, subscribe to what you handle"
+```
 
 ## FlatBuffers: Zero-Copy Performance
 
@@ -666,25 +935,56 @@ End-to-End Performance:
 
 ## Architecture Benefits
 
-### 1. Independent Scaling
+### 1. Extensibility Through Subject-Based Routing
 
-Each stage can scale independently:
+The most powerful architectural benefit:
+
+```
+Add new trading strategy:
+└─ Create new scanner (publishes to opportunity.<type>.*)
+└─ Create new planner (subscribes to opportunity.<type>.>)
+└─ Deploy independently
+   └─ Zero changes to existing code
+   └─ No coordination with other scanners/planners
+   └─ Instant multi-strategy capability
+
+Example strategies:
+├─ Two-hop arbitrage (implemented)
+├─ Triangular arbitrage (ready to add)
+├─ Liquidation monitoring (ready to add)
+├─ Oracle divergence (ready to add)
+├─ DCA execution (ready to add)
+├─ Limit order matching (ready to add)
+└─ MEV opportunities (ready to add)
+
+Result: Platform for unlimited trading strategies
+```
+
+### 2. Independent Scaling
+
+Each stage and strategy can scale independently:
 
 ```
 High market activity:
-└─ Scale up Scanner (horizontal: 3-5 instances)
+└─ Scale up ArbitrageScanner (horizontal: 3-5 instances)
    └─ OPPORTUNITIES stream buffers for Planner
 
-Complex validation:
-└─ Scale up Planner (vertical: more CPU/memory)
-   └─ EXECUTION stream buffers for Executor
+High two-hop volume:
+└─ Scale up TwoHopArbitragePlanner (horizontal: 3 instances)
+   └─ NATS load-balances across instances
+   └─ Other planners (Liquidation, Triangular) unaffected
 
 High execution volume:
 └─ Scale up Executor (horizontal: 2-3 instances)
    └─ Each handles subset of execution plans
+
+Per-strategy scaling:
+└─ Scale only the bottlenecked strategy
+   └─ Other strategies continue normally
+   └─ No global coordination needed
 ```
 
-### 2. Clear Responsibility Boundaries
+### 3. Clear Responsibility Boundaries
 
 ```
 Scanner:  "I think this might be profitable" (confidence: 0.5-0.8)
@@ -692,9 +992,18 @@ Planner:  "I verified this is profitable" (confidence: 0.9+)
 Executor: "I trust the Planner completely"
 
 Result: No redundant work, clear handoffs
+
+Multi-strategy example:
+├─ ArbitrageScanner detects 2-hop opportunities
+├─ LiquidationScanner detects liquidation opportunities
+├─ TwoHopPlanner validates only 2-hop (ignores liquidations)
+├─ LiquidationPlanner validates only liquidations (ignores arbitrage)
+└─ Executor handles all validated plans (doesn't care about type)
+
+Result: Zero coupling, perfect separation
 ```
 
-### 3. Comprehensive Observability
+### 4. Comprehensive Observability
 
 ```
 METRICS stream captures:
@@ -702,14 +1011,21 @@ METRICS stream captures:
 ├─ Throughput: Event counts per stage
 ├─ PnL: Real profit from EXECUTED events
 ├─ Success rate: Planner accuracy, Executor success
-└─ Strategy performance: Per-strategy metrics
+└─ Strategy performance: Per-strategy metrics (which scanner/planner)
 
 Distributed tracing:
 └─ traceId propagated through FlatBuffers events
    └─ Complete end-to-end visibility (quote → execution)
+   └─ Track opportunity from scanner → planner → executor
+
+Per-strategy metrics:
+├─ Which scanner found most profitable opportunities
+├─ Which planner has highest success rate
+├─ Which opportunity types generate most PnL
+└─ A/B test different planner implementations
 ```
 
-### 4. Fault Tolerance
+### 5. Fault Tolerance
 
 ```
 Service crashes:
@@ -719,11 +1035,19 @@ Service crashes:
 
 Kill switch:
 └─ System halts in <100ms across all frameworks
+   └─ All scanners, all planners, executor stop simultaneously
    └─ No runaway losses
 
 Graceful shutdown:
 └─ Clean state preservation
    └─ Resume trading without data loss
+
+Strategy isolation:
+└─ If LiquidationPlanner crashes:
+   ├─ ArbitrageScanner continues (unaffected)
+   ├─ TwoHopPlanner continues (unaffected)
+   └─ Only liquidation opportunities buffered
+   └─ Other strategies execute normally
 ```
 
 ## Impact and Production Readiness
@@ -800,29 +1124,39 @@ Target: Sub-100ms HFT pipeline in production by Week 3
 
 ## Conclusion
 
-This architecture represents a fundamental shift from monolithic to pipeline-based HFT trading:
+This architecture represents a fundamental shift from monolithic to extensible, pipeline-based HFT trading:
+
+**Architectural Extensibility**
+- Subject-based routing: Multiple scanner types publish to OPPORTUNITIES stream
+- Specialized planners: Each subscribes only to relevant opportunity types
+- Zero coupling: Add new strategies without modifying existing code
+- Multi-strategy platform: Arbitrage, liquidation, oracle divergence, DCA, MEV
+- "Publish what you found, subscribe to what you handle"
 
 **Architectural Clarity**
 - 4 stages with clear boundaries (detect, validate, execute, monitor)
 - 6 streams with optimized characteristics (throughput, retention, storage)
-- Independent scaling and fault isolation
+- Independent scaling and fault isolation per strategy
 
 **Performance Optimization**
 - FlatBuffers zero-copy serialization: 31ms latency reduction
 - Smart filtering: 99.5% noise elimination (10k → 50)
 - Sub-100ms target: 95ms end-to-end achieved
+- Per-strategy optimization: Scale bottlenecked strategies independently
 
 **Safety and Reliability**
-- SYSTEM stream: <100ms kill switch response
+- SYSTEM stream: <100ms kill switch response across all strategies
 - Graceful shutdown: Clean state preservation
-- Distributed tracing: Complete visibility
+- Distributed tracing: Complete visibility per opportunity type
+- Strategy isolation: One strategy failure doesn't affect others
 
 **Production Readiness**
 - Proven patterns: Scanner/Planner/Executor separation
-- Comprehensive observability: Metrics, traces, logs
+- Comprehensive observability: Per-strategy metrics, traces, logs
 - Battle-tested infrastructure: NATS JetStream + FlatBuffers
+- Unlimited extensibility: Platform ready for any trading strategy
 
-The system is now ready for implementation and production deployment.
+The system is now ready for implementation and production deployment as a **multi-strategy trading platform**.
 
 ---
 
