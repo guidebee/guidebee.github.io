@@ -313,7 +313,7 @@ Early-stage migration (now):
 
 ### What's Complete (Phases 1-6)
 
-The consolidation document shows we're **75% done**:
+The consolidation document shows we're **75% done with FlatBuffers migration**, but only **~25% done with actual strategy implementation**:
 
 ```
 ✅ Phase 1-3: Infrastructure (100% Complete)
@@ -329,38 +329,46 @@ The consolidation document shows we're **75% done**:
 ├─ 5x faster serialization (50ms → 10ms)
 └─ SYSTEM stream integration (kill switch handler)
 
-✅ Phase 5: Planner Service (100% Complete)
+✅ Phase 5: Strategy Services - Planner (Stub for Pipeline Testing)
 ├─ FlatBuffers deserialization/serialization
-├─ 6-factor validation pipeline
-├─ 4-factor risk scoring
-├─ Transaction simulation with cost estimation
-├─ 7.5x faster processing (45ms → 6ms)
-└─ SYSTEM stream integration
+├─ Service skeleton with SYSTEM stream integration
+├─ Basic event flow validation
+├─ 7.5x faster processing (45ms → 6ms) - FlatBuffers only
+└─ ⚠️ Core strategy logic not implemented (validation, risk scoring, simulation are stubs)
 
-✅ Phase 6: Executor Service (40% Complete)
+✅ Phase 6: Strategy Services - Executor (Stub for Pipeline Testing)
 ├─ Service skeleton and configuration
 ├─ FlatBuffers helpers
 ├─ In-flight transaction tracking
 ├─ SYSTEM stream integration
 ├─ Graceful shutdown (waits for in-flight trades)
-└─ ⚠️ Placeholder transaction logic (needs implementation)
+└─ ⚠️ Core execution logic not implemented (transaction building, signing, submission are stubs)
 ```
 
 ### What's Pending (Phases 7-8)
 
+**Important Clarification**: The FlatBuffers migration is **structurally complete**, but the **strategy services (Planner/Executor) are currently stubs** created solely to test the end-to-end FlatBuffers pipeline. The core business logic (validation, risk scoring, transaction execution) is **not yet implemented**.
+
 The remaining work is clearly documented:
 
 ```
-⏳ Phase 7: End-to-End Testing (1-2 days)
-├─ Deploy full pipeline
+⏳ Phase 7: End-to-End FlatBuffers Pipeline Testing (1-2 days)
+├─ Deploy full pipeline (Scanner → Planner stub → Executor stub)
 ├─ Publish test TwoHopArbitrageEvent
-├─ Verify end-to-end event flow
-├─ Measure latency (target: <100ms for Scanner+Planner)
+├─ Verify end-to-end FlatBuffers event flow
+├─ Measure FlatBuffers serialization latency only
 ├─ Load test with 1000 events/sec
 └─ Test kill switch under load
+**Goal**: Verify FlatBuffers infrastructure works end-to-end
 
-⏳ Phase 8: Production Deployment (1-2 weeks)
-├─ Critical Executor TODOs:
+⏳ Phase 8: Strategy Service Implementation (2-4 weeks)
+├─ **Planner Service - Implement Core Logic** (1 week):
+│  ├─ 6-factor validation pipeline (profit, confidence, age, amounts, slippage, risk)
+│  ├─ 4-factor risk scoring
+│  ├─ Transaction simulation with RPC
+│  └─ Fresh quote integration from MARKET_DATA stream
+│
+├─ **Executor Service - Implement Core Logic** (1-2 weeks):
 │  ├─ Transaction building (DEX-specific swap instructions)
 │  ├─ Transaction signing (wallet integration)
 │  ├─ Jito submission (jito-ts SDK)
@@ -383,15 +391,23 @@ The remaining work is clearly documented:
 
 ### Why It's Worth It
 
-Despite the time investment, the benefits are clear:
+**Important Context**: The FlatBuffers **migration is complete** - all infrastructure, schemas, generation, and service skeletons are done. What remains is **implementing the actual trading strategy logic** in the Planner and Executor services, which are currently stubs for testing the pipeline.
+
+Despite the time investment, the FlatBuffers migration benefits are clear:
 
 ```
-Performance Benefits:
-├─ 35% latency reduction (147ms → 95ms)
-├─ 87% less CPU for serialization
-├─ 44% smaller messages
-├─ Sub-100ms pipeline achieved (15ms Scanner+Planner)
-└─ Result: Competitive advantage in HFT
+FlatBuffers Infrastructure Benefits:
+├─ 87% less CPU for serialization (proven)
+├─ 44% smaller messages (proven)
+├─ Zero-copy deserialization (proven)
+├─ Sub-15ms Scanner→Planner FlatBuffers overhead (proven)
+└─ Result: Infrastructure ready for HFT performance
+
+Strategy Implementation Benefits (pending):
+├─ 35% latency reduction (147ms → 95ms) - **needs actual strategy code**
+├─ Sub-100ms full pipeline - **needs actual execution logic**
+├─ Validation and risk scoring - **needs implementation**
+└─ Result: Competitive advantage when strategy logic is complete
 
 Architectural Benefits:
 ├─ Zero-copy serialization (no memory allocations)
@@ -415,7 +431,7 @@ Future-Proofing:
 └─ Result: Platform for unlimited growth
 ```
 
-**The math**: 3 weeks investment now saves 6+ months of painful migration later, with **zero business risk** during the change.
+**The math**: 3 weeks FlatBuffers infrastructure investment now saves 6+ months of painful migration later, with **zero business risk** during the change. The actual strategy implementation (Planner/Executor logic) is a separate 2-4 weeks of work, but it's building on solid FlatBuffers foundations.
 
 ## Documentation as Code Quality Indicator
 
@@ -539,10 +555,11 @@ Documentation:
 ✅ Clear remaining work documented
 ✅ Team has single source of truth
 
-Migration Status:
-✅ 75% complete (Phases 1-6 done)
-⏳ 25% remaining (Phases 7-8)
-📅 Target: 2 weeks to production-ready
+FlatBuffers Migration Status:
+✅ 100% infrastructure complete (Phases 1-6 done)
+✅ Service stubs complete (pipeline testable)
+⏳ Strategy logic pending (Planner/Executor implementation)
+📅 Target: 2-4 weeks to production-ready with full strategy logic
 
 Knowledge Transfer:
 ✅ Architecture decisions documented
@@ -554,31 +571,45 @@ Knowledge Transfer:
 ### Next Actions
 
 ```
-Week 1 (Phase 7):
-├─ Day 1-2: End-to-end testing
-│  └─ Verify Scanner → Planner → Executor flow
+Week 1 (Phase 7 - FlatBuffers Pipeline Testing):
+├─ Day 1-2: End-to-end FlatBuffers testing
+│  └─ Verify Scanner → Planner stub → Executor stub flow
 ├─ Day 3: Load testing (1000 events/sec)
 └─ Day 4-5: Kill switch testing under load
+**Result**: FlatBuffers infrastructure validated
 
-Week 2 (Phase 8 Part 1):
-├─ Day 1-2: Executor transaction building
-│  └─ DEX-specific swap instructions (Raydium, Orca)
-├─ Day 3: Executor transaction signing
-│  └─ Wallet integration with KMS
-└─ Day 4-5: Jito submission integration
-   └─ jito-ts SDK + bundle submission
+Week 2-3 (Phase 8 Part 1 - Planner Strategy Implementation):
+├─ Day 1-2: Implement 6-factor validation pipeline
+│  └─ Profit, confidence, age, amounts, slippage, risk checks
+├─ Day 3-4: Implement 4-factor risk scoring
+│  └─ Age risk + profit risk + confidence risk + slippage risk
+├─ Day 5-7: Implement transaction simulation
+│  └─ RPC simulation with actual pool reserves
+└─ Day 8-10: MARKET_DATA stream integration
+   └─ Fresh quote fetching and staleness detection
+**Result**: Working Planner with real strategy logic
 
-Week 3 (Phase 8 Part 2):
-├─ Day 1-2: RPC submission fallback
-├─ Day 3: Confirmation polling
-├─ Day 4: Profitability analysis
-└─ Day 5: Final testing and validation
+Week 3-5 (Phase 8 Part 2 - Executor Strategy Implementation):
+├─ Day 1-3: Implement transaction building
+│  └─ DEX-specific swap instructions (Raydium, Orca, Meteora)
+├─ Day 4-5: Implement transaction signing
+│  └─ Wallet integration with secure key storage (KMS)
+├─ Day 6-8: Implement Jito submission
+│  └─ jito-ts SDK + bundle submission + tip calculation
+├─ Day 9-10: Implement RPC submission fallback
+│  └─ @solana/kit + multi-endpoint retry logic
+├─ Day 11-12: Implement confirmation polling
+│  └─ Transaction status monitoring with timeout
+└─ Day 13-14: Implement profitability analysis
+   └─ Parse transaction logs for actual profit vs gas
+**Result**: Working Executor with real execution logic
 
-Week 4 (Deployment):
-├─ Production infrastructure setup
-├─ Grafana dashboards
-├─ Monitoring and alerting
-└─ Production deployment
+Week 6 (Final Testing & Deployment):
+├─ Day 1-2: End-to-end strategy testing
+├─ Day 3: Production infrastructure setup
+├─ Day 4: Grafana dashboards and alerting
+└─ Day 5: Production deployment
+**Result**: Production-ready HFT system
 ```
 
 ## Conclusion
@@ -590,13 +621,15 @@ Today's work wasn't about writing code - it was about **creating clarity from co
 - Removed 95% of duplicate content
 - Created clear roadmap for remaining work
 - Archived historical docs for reference
+- Clarified FlatBuffers migration vs. strategy implementation
 
 **The Architecture Learning**:
-- FlatBuffers migration is **critical** for HFT performance (35% latency reduction, 87% CPU savings)
-- Architecture changes are **time-consuming** (3 weeks investment)
+- FlatBuffers **infrastructure migration is complete** (100% done)
+- FlatBuffers provides **critical performance** (87% CPU savings, 44% smaller messages, zero-copy)
+- Architecture changes are **time-consuming** (3 weeks for FlatBuffers infrastructure)
 - Early-stage migration is **10x cheaper** than late-stage (now vs. 6 months from now)
-- The migration is **worth every minute** (sub-100ms pipeline achieved)
-- We're **in progress** but in great shape (75% complete, 2 weeks to finish)
+- The migration is **worth every minute** (infrastructure ready for HFT)
+- **Strategy implementation is separate work** (Planner/Executor are currently stubs, 2-4 weeks to implement core logic)
 
 **The Key Principle**:
 > **Early-stage architecture changes are expensive in time but cheap in complexity. Late-stage architecture changes are cheap in time but expensive in complexity. Choose wisely.**
@@ -605,7 +638,11 @@ For HFT systems, getting the architecture right early is **non-negotiable**. The
 
 **We're in the early stage. We have the advantage. We're using it.**
 
-The migration continues, and it's absolutely worth it.
+**What's Done**: FlatBuffers infrastructure (100% complete) - the foundation is solid.
+
+**What's Next**: Implementing actual strategy logic in Planner/Executor services (currently stubs for pipeline testing).
+
+The FlatBuffers migration is complete. The strategy implementation begins now, and it's building on solid foundations.
 
 ---
 
