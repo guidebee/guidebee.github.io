@@ -176,6 +176,9 @@ The core philosophy driving our architecture:
 
 Let's dive deep into the core architectural pattern:
 
+![HFT Architecture](/posts/2025/12/images/architecture-hft.png)
+
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                   DATA ACQUISITION LAYER                         │
