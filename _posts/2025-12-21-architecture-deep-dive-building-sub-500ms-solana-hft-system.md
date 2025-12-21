@@ -1,12 +1,22 @@
 ---
-layout: post
+layout: single
 title: "Architecture Deep Dive: Building a Sub-500ms HFT Trading System on Solana"
 date: 2025-12-21
-categories: [blockchain, hft, architecture, solana]
-tags: [solana, high-frequency-trading, architecture, event-driven, microservices, flatbuffers, nats, rust, go, typescript]
-author: James
+permalink: /posts/2025/12/architecture-deep-dive-building-sub-500ms-solana-hft-system/
+categories:
+  - blog
+tags:
+  - solana
+  - hft
+  - architecture
+  - event-driven
+  - microservices
+  - flatbuffers
+  - nats
+  - rust
+  - go
+  - typescript
 excerpt: "A comprehensive architectural analysis of a production-grade high-frequency trading system on Solana. How we achieved sub-500ms execution latency through event-driven architecture, zero-copy serialization, and polyglot microservices—and why these decisions matter for blockchain HFT."
-image: /posts/2025/12/images/hft-architecture-overview.png
 ---
 
 ## Introduction: Architecture Matters (Especially in HFT)
