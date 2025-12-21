@@ -48,13 +48,13 @@ Today (Dec 21):
 ├─ Added system-manager service (kill switch)
 ├─ Added system-auditor service (P&L tracking)
 ├─ Updated scanner-service dashboard
-├─ All 8 services using FlatBuffers
+├─ All 7 services using FlatBuffers
 └─ Complete HFT pipeline infrastructure ready
 ```
 
 The infrastructure is **production-ready** for zero-copy event streaming. What's missing is the **actual trading logic** (validation, risk scoring, transaction building, execution) - but that's the next phase.
 
-## The Complete 8-Service Architecture
+## The Complete 7-Service Architecture
 
 ### 6-Stream NATS Event Bus
 
