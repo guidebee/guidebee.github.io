@@ -270,11 +270,11 @@ With auditor:
 
 After the FlatBuffers migration, the **scanner-service Grafana dashboard** was rebuilt to visualize the new 6-stream architecture.
 
-### Active Token Pairs: 16 Monitored Pairs
+### Active Token Pairs: 15 Monitored Pairs
 
-The TypeScript scanner service monitors **16 active token pairs** for arbitrage opportunities based on `config/tokens.json`:
+The TypeScript scanner service monitors **15 active token pairs** for arbitrage opportunities based on `config/tokens.json`:
 
-**15 LST Token Pairs** (SOL ↔ Liquid Staking Tokens):
+**14 LST Token Pairs** (SOL ↔ Liquid Staking Tokens):
 1. SOL ↔ JitoSOL (Jito Staked SOL)
 2. SOL ↔ JupSOL (Jupiter Staked SOL)
 3. SOL ↔ mSOL (Marinade Staked SOL)
@@ -289,14 +289,13 @@ The TypeScript scanner service monitors **16 active token pairs** for arbitrage 
 12. SOL ↔ BGSOL (Binance Staked SOL)
 13. SOL ↔ bSOL (BlazeStake Native SOL)
 14. SOL ↔ INF (Infinity Staked SOL)
-15. SOL ↔ SOL (base token entry in LST config - filtered by quote-service)
 
 **1 SOL/Stablecoin Pair** (Cross-DEX arbitrage):
-16. SOL ↔ USDC
+15. SOL ↔ USDC
 
-**Why exactly 16 pairs?**
+**Why exactly 15 pairs?**
 
-The scanner-service loads 15 entries from the `tokens.json` LST array, which includes **14 actual LST tokens** plus **SOL itself** (a configuration artifact where SOL with `category:"base"` is listed in the LST array). The token registry's `getLSTTokens()` returns all 15 entries without filtering by category, so the pair generator creates 15 LST pairs (including SOL→SOL which gets filtered by the quote-service when no pools exist). Adding the SOL↔USDC pair gives exactly **16 active token pairs**.
+The scanner-service loads 14 entries from the `tokens.json` LST array (after a configuration cleanup that removed a duplicate SOL entry). The token registry's `getLSTTokens()` returns only **actual LST tokens** with `category:"lst"`, generating 14 valid LST pairs. Adding the SOL↔USDC pair gives exactly **15 active token pairs** for high-quality arbitrage opportunities.
 
 **Why LST tokens are ideal for arbitrage:**
 - **Stable price relationships**: LST tokens trade near 1:1 with SOL, with small premiums/discounts (typically 0.5-2%) based on staking rewards and validator performance
@@ -305,11 +304,12 @@ The scanner-service loads 15 entries from the `tokens.json` LST array, which inc
 - **Cross-DEX opportunities**: Price differences between DEXes create arbitrage opportunities with lower risk than volatile token pairs
 
 **Configuration details:**
-- **Source**: `config/tokens.json` (15 LST array entries: 14 LSTs + 1 SOL base token)
+- **Source**: `config/tokens.json` (14 LST array entries containing only actual LST tokens)
 - **Oracle Sources**: Pyth (base tokens: SOL, USDC, USDT), Jupiter (LST tokens for broader coverage)
 - **Registry**: Centralized token registry via `@repo/shared/tokens` package
 - **Bidirectional monitoring**: TypeScript service registers forward pairs (SOL→LST), Go quote-service auto-creates reverse pairs (LST→SOL) with dynamic oracle-based pricing
 - **Stablecoin pairs disabled**: USDC↔USDT peg arbitrage disabled in production (`MONITOR_STABLECOIN_PAIRS=false`) to focus on higher-profit LST opportunities
+- **Configuration cleanup**: Removed duplicate SOL entry from LST array to eliminate the nonsensical SOL→SOL pair
 
 ### Dashboard Panels
 
@@ -808,7 +808,7 @@ Today marks the **end of the infrastructure phase** and the **beginning of the s
 ✅ 8-service HFT pipeline (all using FlatBuffers)
 ✅ System Manager (kill switch controller)
 ✅ System Auditor (P&L tracker)
-✅ Scanner dashboard (real-time monitoring, 16 active token pairs)
+✅ Scanner dashboard (real-time monitoring, 15 active token pairs)
 ✅ Observability stack (Grafana LGTM+: Loki, Grafana, Tempo, Mimir, Pyroscope)
 ✅ Documentation (single source of truth)
 ```
@@ -895,7 +895,7 @@ For solo developers building HFT systems, **the temptation to skip infrastructur
 - ✅ 87% CPU savings, 44% smaller messages, zero-copy deserialization
 - ✅ Sub-100ms kill switch, 7-day audit trail, real-time P&L tracking
 - ✅ Production-ready observability (Grafana LGTM+ stack: Loki, Tempo, Mimir, Pyroscope)
-- ✅ Scanner monitoring 16 active token pairs (14 LST tokens + SOL/USDC)
+- ✅ Scanner monitoring 15 active token pairs (14 LST tokens + SOL/USDC)
 
 **Business Impact** (projected):
 - 🎯 4-5 weeks to first profitable trade (implementation phase)
