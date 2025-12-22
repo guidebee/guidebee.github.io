@@ -28,7 +28,7 @@ Built quote-service as the core data engine for our HFT pipeline with production
 3. **gRPC Streaming API**: Real-time quote streams for arbitrage scanners with sub-100ms latency
 4. **NATS Event Publishing**: FlatBuffers-encoded market events to 6-stream architecture (MARKET_DATA, OPPORTUNITIES, EXECUTION, EXECUTED, METRICS, SYSTEM)
 5. **Redis Crash Recovery**: 2-3s recovery time (10-20x faster than 30-60s cold start)
-6. **99.99% Availability**: RPC pool with 73+ endpoints, automatic failover, health monitoring
+6. **99.99% Availability**: RPC pool with Multiple endpoints, automatic failover, health monitoring
 7. **Production-Ready Observability**: Loki logging, Prometheus metrics, OpenTelemetry tracing
 
 **The Bottom Line**: Quote-service is the critical performance bottleneck in HFT. Getting the architecture right here determines whether the entire pipeline succeeds or fails.
@@ -88,7 +88,7 @@ Quote-service is a **Go-based microservice** that sits at the foundation of our 
 │                  Quote Service Architecture                      │
 │                                                                  │
 │  ┌────────────────────────────────────────────────────────┐    │
-│  │            RPC Pool (73 Endpoints)                      │    │
+│  │            RPC Pool (Multiple Endpoints)                      │    │
 │  │  • Health Monitor (4 statuses: Healthy/Degraded/        │    │
 │  │    Unhealthy/Disabled)                                  │    │
 │  │  • Round-robin load balancing                           │    │
@@ -159,7 +159,7 @@ Quote-service is a **Go-based microservice** that sits at the foundation of our 
 - Redis persistence: 2-3s crash recovery
 
 **2. Reliability Through Redundancy**
-- 73 RPC endpoints: 99.99% availability
+- Multiple RPC endpoints: 99.99% availability
 - 5 WebSocket connections: No single point of failure
 - Health monitoring: Automatic failover <1s
 
@@ -622,7 +622,7 @@ The RPC pool is critical for **reliability**: 99.99% availability vs 95% for a s
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                  RPC Pool (73 Endpoints)                 │
+│                  RPC Pool (Multiple Endpoints)                 │
 ├─────────────────────────────────────────────────────────┤
 │                                                           │
 │  Health Monitor                                          │
@@ -675,7 +675,7 @@ The RPC pool is critical for **reliability**: 99.99% availability vs 95% for a s
 **Availability Calculation:**
 ```
 Single endpoint:  95% uptime
-73 endpoints:     99.99% uptime (1 - 0.05^73)
+Multiple endpoints:     99.99% uptime (1 - 0.05^73)
 ```
 
 **Failover Speed:**
@@ -744,7 +744,7 @@ Here's the complete latency breakdown for quote-service operations:
 - Peak capacity: 5000+ events/hour
 
 **RPC Pool Throughput:**
-- 73 endpoints × 20 req/s = **1460 req/s**
+- multiple endpoints × 20 req/s = **1460 req/s**
 - Actual usage: ~100-200 req/s (**10x headroom**)
 
 ---
@@ -756,7 +756,7 @@ Quote-service implements multiple layers of reliability:
 ### Fault Tolerance Mechanisms
 
 **1. RPC Pool Redundancy**
-- 73 endpoints: No single point of failure
+- Multiple endpoints: No single point of failure
 - Automatic failover: <1s recovery
 - Health monitoring: Proactive endpoint disabling
 
@@ -1055,7 +1055,7 @@ Quote-service is the **critical performance bottleneck** in our HFT pipeline. Ge
 - ✅ FlatBuffers events (zero-copy serialization)
 
 **Reliability Through Redundancy:**
-- ✅ 99.99% availability (73 RPC endpoints)
+- ✅ 99.99% availability (Multiple RPC endpoints)
 - ✅ No single point of failure (5 WebSocket connections)
 - ✅ Automatic failover (<1s recovery)
 - ✅ Crash recovery (2-3s with Redis)
@@ -1091,7 +1091,7 @@ Quote-service is the **critical performance bottleneck** in our HFT pipeline. Ge
 - Scanner detects, Planner validates with fresh data
 
 **2. Redundancy Prevents Downtime**
-- 73 RPC endpoints: Single endpoint failure doesn't matter
+- Multiple RPC endpoints: Single endpoint failure doesn't matter
 - 5 WebSocket connections: High availability for real-time updates
 - Redis persistence: 2-3s recovery vs 30-60s cold start
 
@@ -1128,7 +1128,7 @@ Quote-service is production-ready. The architecture is sound, performance exceed
 
 **Architectural Achievement:**
 - ✅ Sub-10ms quote engine with in-memory caching (10-20x faster than external APIs)
-- ✅ 99.99% availability with 73-endpoint RPC pool and 5-connection WebSocket pool
+- ✅ 99.99% availability with Multiple-endpoint RPC pool and 5-connection WebSocket pool
 - ✅ Local pool math for 6 DEX protocols (80%+ liquidity coverage)
 - ✅ gRPC streaming API for real-time arbitrage detection (<100ms latency)
 - ✅ NATS FlatBuffers event publishing (960-1620 events/hour, 87% CPU savings)
