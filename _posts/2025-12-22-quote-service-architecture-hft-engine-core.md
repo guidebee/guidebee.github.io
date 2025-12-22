@@ -26,7 +26,7 @@ Built quote-service as the core data engine for our HFT pipeline with production
 1. **Sub-10ms Quote Response**: In-memory cache with 30s refresh delivers quotes in <10ms (vs 100-200ms uncached)
 2. **Multi-Protocol Support**: Local pool math for 6 DEX protocols (Raydium AMM/CLMM/CPMM, Meteora DLMM, Pump.fun, Whirlpool)
 3. **gRPC Streaming API**: Real-time quote streams for arbitrage scanners with sub-100ms latency
-4. **NATS Event Publishing**: FlatBuffers-encoded market events to 6-stream architecture (MARKET_DATA, OPPORTUNITIES, EXECUTION, EXECUTED, METRICS, SYSTEM)
+4. **NATS Event Publishing**: FlatBuffers-encoded market events to 6-stream architecture (MARKET_DATA, OPPORTUNITIES, PLANNED, EXECUTED, METRICS, SYSTEM)
 5. **Redis Crash Recovery**: 2-3s recovery time (10-20x faster than 30-60s cold start)
 6. **99.99% Availability**: RPC pool with Multiple endpoints, automatic failover, health monitoring
 7. **Production-Ready Observability**: Loki logging, Prometheus metrics, OpenTelemetry tracing
@@ -266,7 +266,7 @@ Quote-service publishes to the **MARKET_DATA stream** within the 6-stream NATS a
 |--------|---------|-----------|---------|-------------------|
 | **MARKET_DATA** | Quote updates | 1 hour | Memory | **Publisher** ✅ |
 | **OPPORTUNITIES** | Detected opportunities | 24 hours | File | Consumer |
-| **EXECUTION** | Validated plans | 1 hour | File | Consumer |
+| **PLANNED** | Validated plans | 1 hour | File | Consumer |
 | **EXECUTED** | Execution results | 7 days | File | Consumer |
 | **METRICS** | Performance metrics | 1 hour | Memory | Consumer |
 | **SYSTEM** | Kill switch & control | 30 days | File | Consumer |
@@ -862,11 +862,11 @@ Quote-service sits at the **foundation** of the HFT pipeline:
 │                                                           │
 │  PLANNER (TypeScript)                                     │
 │    ↓ Subscribes: OPPORTUNITIES + MARKET_DATA             │
-│    ↓ Publishes: EXECUTION stream                         │
+│    ↓ Publishes: PLANNED stream                         │
 │    Performance: 6ms validation                           │
 │                                                           │
 │  EXECUTOR (TypeScript)                                    │
-│    ↓ Subscribes: EXECUTION stream                        │
+│    ↓ Subscribes: PLANNED stream                        │
 │    ↓ Publishes: EXECUTED stream                          │
 │    Performance: 20ms submission                          │
 │                                                           │
