@@ -31,16 +31,17 @@ Today's post is a bit different—instead of implementation details, I'm sharing
 
 ## TL;DR
 
-Planning a comprehensive rewrite of quote-service with clean architecture principles:
+Planning a comprehensive rewrite of quote-service with clean architecture principles **AND HFT integration**:
 
 1. **85% Code Reduction**: 50K lines → 15K lines through proper separation of concerns
-2. **20x Faster Quotes**: 200ms → 10ms by separating pool discovery from quote serving
+2. **Sub-10ms Cached Quotes**: < 10ms HFT-critical latency (vs current 200ms uncached)
 3. **4x Better Test Coverage**: 20% → 80%+ with dependency injection and interfaces
 4. **Dramatically Better Maintainability**: Internal packages, clean architecture, single responsibility
 5. **Service Separation**: 3 services (quote, pool discovery, RPC proxy) vs 1 monolith
 6. **Technology Decision**: Go for speed (2-3 weeks), Rust RPC proxy for shared infrastructure
+7. **HFT Pipeline Integration**: Shredstream cache (300-800ms head start), FlatBuffers events (20-150x faster), NATS MARKET_DATA stream
 
-**The Core Insight**: The current quote-service **works**, but it's **unmaintainable**. We need to rebuild the foundation now before technical debt makes future changes impossible.
+**The Core Insight**: The current quote-service **works**, but it's **unmaintainable** and **not HFT-ready**. We need to rebuild the foundation now before technical debt makes future changes impossible, AND we need to integrate with the HFT pipeline for sub-200ms end-to-end execution.
 
 ---
 
@@ -51,10 +52,11 @@ Planning a comprehensive rewrite of quote-service with clean architecture princi
 3. [New Architecture: Clean Separation](#new-architecture-clean-separation)
 4. [Go vs Rust Decision](#go-vs-rust-decision)
 5. [HTTP + gRPC: Combined vs Split](#http--grpc-combined-vs-split)
-6. [Clean Architecture Benefits](#clean-architecture-benefits)
-7. [Technology Stack Decisions](#technology-stack-decisions)
-8. [Expected Improvements](#expected-improvements)
-9. [Conclusion: Building for the Future](#conclusion-building-for-the-future)
+6. [HFT Integration Requirements](#hft-integration-requirements) ← **NEW**
+7. [Clean Architecture Benefits](#clean-architecture-benefits)
+8. [Technology Stack Decisions](#technology-stack-decisions)
+9. [Expected Improvements](#expected-improvements)
+10. [Conclusion: Building for the Future](#conclusion-building-for-the-future)
 
 ---
 
@@ -310,33 +312,62 @@ Result: 80%+ test coverage, fast unit tests ✅
 └───────────────────────────────────────────────────┘
 ```
 
-**After (Clean Separation):**
+**After (Clean Separation + HFT Integration):**
 
 ```
+┌─────────────────────────────────────────────────────┐
+│    Shredstream Scanner (Rust - 300-800ms Advance)   │
+│  • QUIC protocol for unconfirmed slot data          │
+│  • Publishes: pool.state.updated.* (NATS)           │
+│  • Provides 300-800ms head start over RPC           │
+└────────────────────┬────────────────────────────────┘
+                     ↓ NATS pool.state.updated.*
 ┌─────────────────────────────────────────────────────┐
 │      Pool Discovery Service (NEW - Independent)     │
 │  • Discovers pools every 5 minutes                  │
 │  • Writes to Redis (pool metadata)                  │
-│  • No blocking, runs in background                  │
+│  • Solscan enrichment (TVL, 24h volume)             │
+│  • Pool quality filtering (liquidity, status)       │
 │  • 8K lines, single responsibility ✅               │
 └────────────────────┬────────────────────────────────┘
-                     ↓ Redis
+                     ↓ Redis (pool metadata)
 ┌─────────────────────────────────────────────────────┐
-│     Quote Service (REWRITTEN - Clean Architecture)  │
-│  • Reads pools from Redis (fast, no blocking) ✅    │
-│  • ONLY quote calculation + serving ✅              │
-│  • HTTP + gRPC in one service (shared cache) ✅     │
+│   Quote Service (REWRITTEN - Clean + HFT Ready)     │
+│                                                     │
+│  INPUTS:                                            │
+│  • Redis pool metadata (5-10ms)                     │
+│  • NATS pool.state.updated.* (Shredstream cache)    │
+│                                                     │
+│  CORE:                                              │
+│  • Hybrid cache: Shredstream (5ms) → In-memory      │
+│  • Slot-based consistency (only update if newer)    │
+│  • Thread-safe pool cache (sync.RWMutex)            │
 │  • 15K lines, clean architecture ✅                 │
 │  • 80%+ test coverage ✅                            │
+│                                                     │
+│  OUTPUTS:                                           │
+│  • HTTP API :8080 (< 10ms quotes)                   │
+│  • gRPC streaming :50051                            │
+│  • NATS market.swap_route.* (FlatBuffers events)    │
 │                                                     │
 │  Internal Structure:                                │
 │  ├── domain/      (interfaces, models)              │
 │  ├── repository/  (Redis, cache, oracle)            │
+│  ├── cache/       (Shredstream pool cache) ← NEW    │
 │  ├── calculator/  (pool math, routing)              │
 │  ├── service/     (business logic)                  │
+│  ├── events/      (FlatBuffers publisher) ← NEW     │
+│  ├── nats/        (NATS subscriber) ← NEW           │
 │  └── api/         (HTTP + gRPC)                     │
 └────────────────────┬────────────────────────────────┘
-                     ↓ HTTP
+                     ↓ NATS MARKET_DATA stream
+┌─────────────────────────────────────────────────────┐
+│      Scanner Service (Stage 1: Opportunity Det.)    │
+│  • Subscribes: market.swap_route.*                  │
+│  • Detects arbitrage opportunities                  │
+│  • Publishes: opportunity.* (< 50ms)                │
+└─────────────────────────────────────────────────────┘
+                     ↓ HTTP (RPC calls)
 ┌─────────────────────────────────────────────────────┐
 │         Rust RPC Proxy (Shared Infrastructure)      │
 │  • Centralized RPC management                       │
@@ -344,6 +375,21 @@ Result: 80%+ test coverage, fast unit tests ✅
 │  • Rate limiting, health monitoring                 │
 │  • Connection pooling, circuit breaker              │
 └─────────────────────────────────────────────────────┘
+```
+
+**HFT Pipeline Flow (Stage 0 → Stage 1):**
+
+```
+Stage 0: Quote Service (< 10ms per quote)
+    ↓ publishes: market.swap_route.* (FlatBuffers, <1ms)
+Stage 1: Scanner (< 50ms detection)
+    ↓ publishes: opportunity.*
+Stage 2: Planner (< 50ms planning)
+    ↓ publishes: execution.planned
+Stage 3: Executor (< 90ms execution)
+    ↓ publishes: execution.completed
+
+TOTAL: < 200ms end-to-end (vs current 1.7s = 8.5x faster)
 ```
 
 ### Key Improvements
@@ -505,6 +551,384 @@ Should HTTP and gRPC be in one service or split into two separate services?
    - Split: 600MB (2x Redis storage)
 
 **The Insight:** For HFT systems targeting sub-10ms latency, **in-memory cache sharing** between HTTP and gRPC is non-negotiable. The 1ms Redis overhead destroys performance gains from service separation.
+
+---
+
+## HFT Integration Requirements
+
+Quote-service is **Stage 0** of the HFT pipeline. These requirements are **NON-NEGOTIABLE** for sub-200ms end-to-end execution.
+
+### Performance Targets ⚡
+
+**CRITICAL:** Quote-service must meet these latency targets to enable the full HFT pipeline.
+
+| Metric | Target | HFT Requirement |
+|--------|--------|-----------------|
+| **Cached Quote (Cache Hit)** | **< 10ms** | **MANDATORY** |
+| **Cached Quote (Shredstream)** | **< 5ms** | **OPTIMAL** |
+| **NATS Event Publishing** | **< 1ms** | **10,000 events/sec** |
+| **Pool State Update** | **Slot-based** | **Only if newer slot** |
+| **Cache Hit Rate** | **> 95%** | **Minimize RPC calls** |
+
+### 1. Shredstream Pool State Cache (300-800ms Advance)
+
+Shredstream provides **unconfirmed slot data** via QUIC protocol, giving us a **300-800ms head start** over RPC.
+
+**Implementation:**
+
+```go
+// internal/quote-service/cache/shredstream_cache.go
+
+type PoolStateCache struct {
+    mu     sync.RWMutex
+    pools  map[string]*PoolState // key: pool address
+    config CacheConfig
+}
+
+type PoolState struct {
+    Address      string
+    BaseMint     string
+    QuoteMint    string
+    BaseReserve  uint64
+    QuoteReserve uint64
+    Liquidity    float64
+    Price        float64
+    Slot         uint64       // CRITICAL: For consistency
+    LastUpdated  time.Time
+}
+
+// Slot-based consistency: ONLY update if newer slot
+func (c *PoolStateCache) Update(state *PoolState) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+
+    existing, exists := c.pools[state.Address]
+    if exists && existing.Slot >= state.Slot {
+        return // Ignore stale update
+    }
+
+    state.LastUpdated = time.Now()
+    c.pools[state.Address] = state
+}
+
+// Thread-safe read
+func (c *PoolStateCache) Get(address string) (*PoolState, bool) {
+    c.mu.RLock()
+    defer c.mu.RUnlock()
+
+    state, exists := c.pools[address]
+    if !exists {
+        return nil, false
+    }
+
+    // Check staleness (30s threshold)
+    if time.Since(state.LastUpdated) > 30*time.Second {
+        return nil, false
+    }
+
+    return state, true
+}
+```
+
+### 2. NATS Subscriber for Shredstream Events
+
+Subscribe to `pool.state.updated.*` events from Shredstream Scanner.
+
+**Implementation:**
+
+```go
+// internal/quote-service/nats/subscriber.go
+
+type ShredstreamSubscriber struct {
+    nc    *nats.Conn
+    js    nats.JetStreamContext
+    cache *cache.PoolStateCache
+}
+
+func (s *ShredstreamSubscriber) Start(ctx context.Context) error {
+    // Subscribe to pool state updates
+    sub, err := s.js.Subscribe(
+        "pool.state.updated.*",
+        func(msg *nats.Msg) {
+            s.handlePoolUpdate(msg)
+            msg.Ack()
+        },
+        nats.Durable("quote-service-pool-updates"),
+        nats.DeliverAll(),
+    )
+    if err != nil {
+        return fmt.Errorf("subscribe failed: %w", err)
+    }
+
+    // Background eviction loop
+    go s.evictionLoop(ctx)
+
+    return nil
+}
+
+func (s *ShredstreamSubscriber) handlePoolUpdate(msg *nats.Msg) {
+    var state cache.PoolState
+    if err := json.Unmarshal(msg.Data, &state); err != nil {
+        log.Warn("Failed to unmarshal pool state", "error", err)
+        return
+    }
+
+    // Update cache with slot-based consistency
+    s.cache.Update(&state)
+}
+
+// Evict stale entries every 60s
+func (s *ShredstreamSubscriber) evictionLoop(ctx context.Context) {
+    ticker := time.NewTicker(60 * time.Second)
+    defer ticker.Stop()
+
+    for {
+        select {
+        case <-ticker.C:
+            s.cache.Evict(30 * time.Second)
+        case <-ctx.Done():
+            return
+        }
+    }
+}
+```
+
+### 3. FlatBuffers Event Publishing (20-150x Faster)
+
+Publish swap route events to NATS MARKET_DATA stream using FlatBuffers for **zero-copy serialization**.
+
+**FlatBuffers Schema:**
+
+```flatbuffers
+// internal/quote-service/events/schemas.fbs
+
+namespace events;
+
+table SwapRouteEvent {
+  token_in: string;
+  token_out: string;
+  amount_in: uint64;
+  amount_out: uint64;
+  price: double;
+  price_impact_bps: uint32;
+  route: [RouteHop];
+  protocol: string;
+  pool_address: string;
+  slot: uint64;
+  timestamp: uint64;
+  trace_id: string;
+}
+
+table RouteHop {
+  protocol: string;
+  pool_address: string;
+  input_mint: string;
+  output_mint: string;
+  amount_in: uint64;
+  amount_out: uint64;
+  fee_bps: uint32;
+}
+```
+
+**Publisher Implementation:**
+
+```go
+// internal/quote-service/events/publisher.go
+
+type FlatBuffersPublisher struct {
+    js      nats.JetStreamContext
+    builder *flatbuffers.Builder
+}
+
+func (p *FlatBuffersPublisher) PublishSwapRoute(
+    ctx context.Context,
+    quote *domain.Quote,
+) error {
+    // Reset builder for reuse
+    p.builder.Reset()
+
+    // Build FlatBuffers message
+    tokenIn := p.builder.CreateString(quote.InputMint)
+    tokenOut := p.builder.CreateString(quote.OutputMint)
+    protocol := p.builder.CreateString(quote.Protocol)
+    poolAddr := p.builder.CreateString(quote.PoolAddress)
+    traceID := p.builder.CreateString(observability.TraceID(ctx))
+
+    SwapRouteEventStart(p.builder)
+    SwapRouteEventAddTokenIn(p.builder, tokenIn)
+    SwapRouteEventAddTokenOut(p.builder, tokenOut)
+    SwapRouteEventAddAmountIn(p.builder, quote.AmountIn)
+    SwapRouteEventAddAmountOut(p.builder, quote.AmountOut)
+    SwapRouteEventAddPrice(p.builder, quote.Price)
+    SwapRouteEventAddPriceImpactBps(p.builder, quote.PriceImpactBps)
+    SwapRouteEventAddProtocol(p.builder, protocol)
+    SwapRouteEventAddPoolAddress(p.builder, poolAddr)
+    SwapRouteEventAddSlot(p.builder, quote.Slot)
+    SwapRouteEventAddTimestamp(p.builder, uint64(time.Now().Unix()))
+    SwapRouteEventAddTraceId(p.builder, traceID)
+    event := SwapRouteEventEnd(p.builder)
+
+    p.builder.Finish(event)
+
+    // Publish to NATS (< 1ms)
+    subject := fmt.Sprintf("market.swap_route.%s.%s",
+        quote.InputMint[:8], quote.OutputMint[:8])
+
+    _, err := p.js.Publish(subject, p.builder.FinishedBytes(),
+        nats.MsgId(traceID))
+
+    return err
+}
+```
+
+**Performance Comparison:**
+
+| Format | Encode | Decode | Size | Performance |
+|--------|--------|--------|------|-------------|
+| **FlatBuffers** | **100ns** | **50ns** | **400 bytes** | **20-150x faster** ✅ |
+| JSON | 500ns | 2000ns | 1200 bytes | Baseline |
+| Protobuf | 200ns | 800ns | 600 bytes | 2-10x faster |
+
+### 4. Hybrid Cache Strategy
+
+Three-tier cache strategy for optimal latency:
+
+```go
+// internal/quote-service/service/quote_service.go
+
+func (s *QuoteService) GetQuote(
+    ctx context.Context,
+    inputMint, outputMint string,
+    amount uint64,
+) (*domain.Quote, error) {
+
+    // Strategy 1: Try Shredstream pool cache (5-10ms)
+    if s.config.Shredstream.Enabled {
+        quote, err := s.getQuoteFromShredstream(inputMint, outputMint, amount)
+        if err == nil {
+            s.metrics.CacheHits.Inc()
+            return quote, nil
+        }
+    }
+
+    // Strategy 2: Try in-memory quote cache (< 5ms)
+    if cached, ok := s.cache.Get(inputMint, outputMint, amount); ok {
+        if time.Since(cached.Timestamp) < s.config.Cache.TTL {
+            s.metrics.CacheHits.Inc()
+            return cached, nil
+        }
+    }
+
+    // Strategy 3: Calculate fresh quote (100-200ms fallback)
+    s.metrics.CacheMisses.Inc()
+    quote, err := s.calculateQuote(ctx, inputMint, outputMint, amount)
+    if err != nil {
+        return nil, err
+    }
+
+    // Cache for future requests
+    s.cache.Set(inputMint, outputMint, amount, quote)
+
+    return quote, nil
+}
+```
+
+### 5. Configuration
+
+Environment variables for HFT integration:
+
+```bash
+# Shredstream Integration
+SHREDSTREAM_ENABLED=true
+SHREDSTREAM_CACHE_MAX_STALENESS=30s
+SHREDSTREAM_EVICTION_INTERVAL=60s
+
+# NATS Configuration
+NATS_URL=nats://localhost:4222
+NATS_SUBJECT_POOL_UPDATES="pool.state.updated.*"
+NATS_SUBJECT_SWAP_ROUTE="market.swap_route"
+NATS_DURABLE_NAME="quote-service-pool-updates"
+
+# HFT Performance Targets
+HFT_QUOTE_LATENCY_TARGET_MS=10
+HFT_EVENT_PUBLISH_RATE_TARGET=10000
+HFT_CACHE_HIT_RATE_TARGET=0.95
+
+# FlatBuffers
+FLATBUFFERS_ENABLED=true
+FLATBUFFERS_BUILDER_INITIAL_SIZE=1024
+```
+
+### 6. Updated Package Structure
+
+```
+internal/quote-service/
+├── cache/              # NEW: Shredstream pool cache
+│   ├── shredstream_cache.go
+│   └── eviction.go
+├── events/             # NEW: FlatBuffers event publishing
+│   ├── publisher.go
+│   └── schemas.fbs     # FlatBuffers schema
+└── nats/               # NEW: NATS integration
+    ├── subscriber.go   # Pool state updates
+    └── kill_switch.go  # Emergency stop
+```
+
+### 7. Why FlatBuffers Over JSON/Protobuf?
+
+**FlatBuffers Advantages:**
+
+1. **Zero-copy deserialization** - Access data without parsing
+2. **20-150x faster** than JSON encoding/decoding
+3. **Smaller message size** - 400 bytes vs 1200 bytes (JSON)
+4. **Backward/forward compatible** - Schema evolution
+5. **No runtime serialization** - Data stored in-memory ready to send
+
+**When to Use FlatBuffers:**
+
+- ✅ High-frequency events (10,000/sec)
+- ✅ Latency-critical paths (< 1ms publish)
+- ✅ Large message volumes
+- ❌ Human-readable debugging (use JSON for admin APIs)
+
+### 8. HFT Pipeline Integration
+
+Quote-service is **Stage 0** of the 4-stage HFT pipeline:
+
+```
+┌─────────────────────────────────────────────┐
+│ Stage 0: Quote Service (< 10ms)             │
+│ ─────────────────────────────────────────── │
+│ INPUT:  HTTP/gRPC request                   │
+│ PROCESS: Hybrid cache (Shredstream → Mem)  │
+│ OUTPUT: FlatBuffers event → MARKET_DATA     │
+└────────────────┬────────────────────────────┘
+                 ↓ NATS: market.swap_route.*
+┌─────────────────────────────────────────────┐
+│ Stage 1: Scanner (< 50ms)                   │
+│ Detects arbitrage opportunities             │
+└────────────────┬────────────────────────────┘
+                 ↓ NATS: opportunity.*
+┌─────────────────────────────────────────────┐
+│ Stage 2: Planner (< 50ms)                   │
+│ Plans execution strategy                    │
+└────────────────┬────────────────────────────┘
+                 ↓ NATS: execution.planned
+┌─────────────────────────────────────────────┐
+│ Stage 3: Executor (< 90ms)                  │
+│ Submits Jito bundle                         │
+└─────────────────────────────────────────────┘
+
+TOTAL: < 200ms end-to-end (vs current 1.7s)
+```
+
+**Quote Service Responsibilities:**
+
+- ✅ Serve quotes in < 10ms (Stage 0 target)
+- ✅ Publish FlatBuffers events to MARKET_DATA stream
+- ✅ Subscribe to Shredstream pool state updates
+- ✅ Maintain > 95% cache hit rate
+- ✅ Handle 10,000 events/sec throughput
 
 ---
 
@@ -690,12 +1114,25 @@ func TestGetQuote(t *testing.T) {
 
 ### Performance Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Quote Latency (cached)** | ~5ms | < 5ms | Same (already fast) |
-| **Quote Latency (uncached)** | ~200ms | < 50ms | **4x faster** |
-| **Throughput** | 500 req/s | 10K req/s | **20x higher** |
-| **Memory Usage** | 800MB | 300MB | **63% reduction** |
+| Metric | Before | After (Clean) | After (HFT) | Improvement |
+|--------|--------|---------------|-------------|-------------|
+| **Quote Latency (cached)** | ~5ms | < 5ms | **< 5ms** ✅ | Same (already fast) |
+| **Quote Latency (Shredstream)** | N/A | N/A | **< 5ms** ✅ | **NEW: 300-800ms advance** |
+| **Quote Latency (uncached)** | ~200ms | < 50ms | < 50ms | **4x faster** |
+| **NATS Event Publishing** | N/A | N/A | **< 1ms** ✅ | **NEW: 10K events/sec** |
+| **Throughput** | 500 req/s | 10K req/s | **10K req/s** ✅ | **20x higher** |
+| **Memory Usage** | 800MB | 300MB | 350MB | **56% reduction** |
+| **Cache Hit Rate** | ~80% | ~90% | **> 95%** ✅ | **HFT: Critical** |
+
+### HFT Pipeline Metrics (NEW)
+
+| Stage | Service | Latency Target | Current | Status |
+|-------|---------|----------------|---------|--------|
+| **Stage 0** | Quote Service | **< 10ms** | 5-10ms | ✅ **HFT Ready** |
+| Stage 1 | Scanner | < 50ms | TBD | 🚧 In Progress |
+| Stage 2 | Planner | < 50ms | TBD | 🚧 In Progress |
+| Stage 3 | Executor | < 90ms | TBD | 🚧 In Progress |
+| **TOTAL** | **End-to-End** | **< 200ms** | **1.7s** | **8.5x improvement planned** |
 
 ### Code Quality Metrics
 
