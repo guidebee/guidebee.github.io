@@ -428,6 +428,111 @@ pool-discovery-service \
 - `use-websocket`: Enable WebSocket-first mode
 - `ws-backup-interval`: RPC backup interval when WebSocket enabled
 
+### Grafana Dashboard Monitoring
+
+The pool-discovery-service includes a comprehensive Grafana dashboard for real-time monitoring and operational visibility.
+
+**Dashboard Overview:**
+
+![Pool Discovery Service Dashboard](../images/pool-discovery-dashboard1.png)
+
+**Key Metrics Tracked:**
+
+**1. Service Health & Status**
+- Service health indicator (UP/DOWN)
+- Total pools discovered
+- WebSocket connection status
+- Active subscriptions count
+- Cached pools in Redis
+
+**2. Discovery Performance**
+```promql
+# Discovery cycle duration (p50, p95, p99)
+histogram_quantile(0.95, rate(pool_discovery_duration_seconds_bucket[5m]))
+histogram_quantile(0.99, rate(pool_discovery_duration_seconds_bucket[5m]))
+histogram_quantile(0.50, rate(pool_discovery_duration_seconds_bucket[5m]))
+
+# Total discovery runs
+pool_discovery_runs_total
+
+# Pools discovered by DEX protocol
+pool_discovery_pools_by_dex{dex}
+```
+
+**3. WebSocket Real-Time Updates**
+```promql
+# Pool update rate
+rate(websocket_updates_received_total[1m])
+
+# WebSocket update latency (p95, p99)
+histogram_quantile(0.95, rate(websocket_update_latency_seconds_bucket[5m]))
+histogram_quantile(0.99, rate(websocket_update_latency_seconds_bucket[5m]))
+
+# Update source distribution (WebSocket vs RPC backup)
+rate(pool_update_source_total{source="websocket"}[5m])
+rate(pool_update_source_total{source="rpc_backup"}[5m])
+
+# RPC backup polling triggers
+rpc_backup_triggered_total
+```
+
+**4. Pool Enrichment Metrics**
+```promql
+# Enrichment activity
+rate(pool_enrichment_pools_enriched_total[5m])
+rate(pool_enrichment_pools_failed_total[5m])
+
+# API latency (Solscan)
+histogram_quantile(0.95, rate(pool_enrichment_api_latency_seconds_bucket[5m]))
+
+# Enrichment runs
+pool_enrichment_runs_total
+```
+
+**5. Error Tracking**
+```promql
+# Discovery errors
+pool_discovery_errors_total
+
+# WebSocket errors by type
+websocket_errors_total{error_type}
+
+# Enrichment errors
+pool_enrichment_pools_failed_total
+```
+
+**6. RPC Scanner Performance**
+```promql
+# Scanner latency by protocol
+rpc_scanner_latency_seconds{protocol}
+
+# Scanner requests by protocol and status
+rpc_scanner_requests_total{protocol, status}
+```
+
+**Dashboard Features:**
+- **Real-time updates**: Live data refresh every 5 seconds
+- **Time range selector**: View historical trends
+- **Protocol breakdown**: Per-DEX pool distribution
+- **Alert integration**: Visual indicators for error conditions
+- **Drill-down capability**: Click panels for detailed views
+
+**Access Dashboard:**
+- URL: `http://localhost:3000/d/pool-discovery-service`
+- Location: `deployment/monitoring/grafana/provisioning/dashboards/pool-discovery-service-dashboard.json`
+
+**Key Insights from Dashboard:**
+
+1. **WebSocket Efficiency**: Monitor the ratio of WebSocket updates vs RPC backup polling to ensure WebSocket-first architecture is working correctly (target: >99% WebSocket updates)
+
+2. **Protocol Health**: Track which DEX protocols are contributing pools and identify any protocol-specific issues
+
+3. **Enrichment Rate**: Monitor enrichment API latency to ensure we're staying within rate limits (target: <2 req/s)
+
+4. **Cache Hit Rate**: Verify pool TTL is appropriate by monitoring cache size vs total discovered pools
+
+5. **Error Patterns**: Identify systematic issues through error rate trends and WebSocket reconnection frequency
+
 ### Performance Characteristics
 
 **Discovery Performance:**
