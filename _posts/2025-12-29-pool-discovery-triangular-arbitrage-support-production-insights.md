@@ -266,7 +266,7 @@ The [pool-discovery-lst-pairs.json](https://github.com/guidebee/solana-trading-s
 - **Why useful:** Confirms token pair configuration is correct
 
 **2. Total Pools Discovered**
-- Current: ~270 pools (45 pairs × ~6 pools/pair)
+- Current: ~270 pools (45 pairs × ~6 pools/pair or 870 pools multiple pools for same pair)
 - Query: `pool_discovery_pools_total`
 - **Why useful:** Validates bidirectional discovery is working
 
