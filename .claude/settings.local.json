@@ -11,7 +11,8 @@
       "Bash(git -C \"c:/Trading/guidebee.github.io\" status README.md)",
       "Bash(test:*)",
       "Bash(dir C:Tradingguidebee.github.io_posts /b /o-d)",
-      "Bash(bundle exec jekyll build:*)"
+      "Bash(bundle exec jekyll build:*)",
+      "Bash(dir \"C:\\\\Trading\\\\guidebee.github.io\\\\_posts\" /b /o-d)"
     ],
     "deny": [],
     "ask": []
