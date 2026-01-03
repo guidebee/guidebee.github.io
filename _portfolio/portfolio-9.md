@@ -1,6 +1,6 @@
 ---
 title: "Solana HFT Trading System"
-excerpt: "Production-grade high-frequency trading system with AI-enhanced architecture for Solana blockchain arbitrage<br/><img src='https://media.licdn.com/dms/image/v2/D5622AQFKxbBXDdRbzQ/feedshare-shrink_800/feedshare-shrink_800/0/1726062836845?e=1766620800&v=beta&t=a3h-NNyZLwbFAjxBYt1gPaGesvykP-eGLSce3dhDt4U'>"
+excerpt: "Production-grade high-frequency trading system with AI-enhanced architecture for Solana blockchain arbitrage<br/><img src='/posts/2025/12/images/hft.png'>"
 collection: portfolio
 ---
 

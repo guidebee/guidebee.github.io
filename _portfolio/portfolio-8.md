@@ -1,6 +1,6 @@
 ---
 title: "Animated Data Visualization - GDP Rankings"
-excerpt: "Interactive animated visualization of world GDP rankings from 1960 to present using React<br/><img src='https://media.licdn.com/dms/image/v2/C5612AQGWz1w-sL2-CQ/article-cover_image-shrink_600_2000/article-cover_image-shrink_600_2000/0/1542200261496?e=1766620800&v=beta&t=RZNblxSkV5GliIlZLRbWe8XFM04Pu18BTSqx84Wza3Q'>"
+excerpt: "Interactive animated visualization of world GDP rankings from 1960 to present using React<br/><img src='/posts/2025/12/images/gdpdata.png'>"
 collection: portfolio
 ---
 
