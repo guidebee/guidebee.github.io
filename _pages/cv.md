@@ -11,9 +11,19 @@ redirect_from:
 
 ## Profile Summary
 
-Innovative full-stack developer with over 20 years of experience in web application design, development, and solution architecture. Expert in React, .NET C#, JavaScript, Python, and cloud platforms like AWS and Azure. Highly experienced in creating and maintaining scalable web applications, and skilled in both front-end and back-end development. Renowned for independently achieving project goals and rapidly acquiring new technical skills. Excellent team player and mentor, committed to fostering collaborative and high-performing development environments.
+Innovative full-stack developer with over 20 years of experience in web application design, development, and solution architecture. Expert in building high-performance systems across blockchain, cloud platforms, and enterprise applications. Five years of specialized Solana blockchain development experience, building NFT platforms, DeFi integrations, and production-grade high-frequency trading systems with sub-500ms latency requirements. Proficient in polyglot architecture design using Rust, Go, and TypeScript for performance-critical applications. Deep expertise in React, .NET C#, JavaScript, Python, and cloud platforms (AWS, Azure). Highly experienced in creating and maintaining scalable distributed systems, microservices architecture, and event-driven applications. Renowned for independently achieving project goals, solving complex technical challenges, and rapidly acquiring new technical skills. Excellent team player and mentor, committed to fostering collaborative and high-performing development environments.
 
 ## Technical Skills
+
+### Blockchain & DeFi Technologies
+* **Solana Blockchain**: 5 years production experience with NFT platforms, DeFi protocols, and HFT trading systems
+* **Smart Contracts & Programs**: Metaplex (NFT), SPL Token standards, program-derived addresses (PDAs)
+* **DeFi Protocols**: Raydium, Orca, Serum, OpenBook DEX, Jupiter aggregator, Meteora, PumpSwap
+* **Trading Strategies**: Arbitrage, flash loans (Kamino), LST strategies, grid trading, DCA, market making
+* **MEV & Performance**: Jito bundles, Shredstream integration, sub-500ms execution pipelines
+* **Blockchain Infrastructure**: RPC failover strategies (95+ providers), transaction retry patterns, Solana account models
+* **AMM Mathematics**: Constant product (CPMM), concentrated liquidity (CLMM), dynamic liquidity (DLMM)
+* **Web3 Tools**: Solana Web3.js, Anchor framework, SolRoute SDK, wallet adapters
 
 ### Languages
 * TypeScript, JavaScript
@@ -25,10 +35,35 @@ Innovative full-stack developer with over 20 years of experience in web applicat
 * C
 * Java
 
+### Distributed Systems & Messaging
+* **Event Systems**: NATS JetStream, Redis Pub/Sub, message queues
+* **Serialization**: FlatBuffers, Protocol Buffers, JSON
+* **RPC**: gRPC streaming, REST APIs, WebSocket
+* **Architecture**: Microservices, event-driven design, polyglot systems
+
+### Databases & Caching
+* PostgreSQL
+* Redis
+* MySQL
+* MongoDB
+* Firebase
+
+### Observability & Monitoring
+* Prometheus (metrics)
+* Grafana (dashboards)
+* Jaeger (distributed tracing)
+* Loki (log aggregation)
+* OpenTelemetry
+
 ### Cloud Platforms
 * Azure
 * AWS
 * Google Cloud
+
+### Container & Orchestration
+* Docker
+* Docker Compose
+* Kubernetes
 
 ### Mobile Platforms
 * Android
