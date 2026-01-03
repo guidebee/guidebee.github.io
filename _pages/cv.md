@@ -92,18 +92,34 @@ Innovative full-stack developer with over 20 years of experience in web applicat
 
 ### Solana Playground
 **Founder and Senior Developer (Part-time) | February 2020 - Present**
-*Technologies: Go, Rust, TypeScript, NATS, Redis, PostgreSQL, Solana Blockchain*
+*Technologies: Go, Rust, TypeScript, NATS, Redis, PostgreSQL, Solana Blockchain, Docker, Kubernetes*
 
-* Founded Solana Playground, focusing on high-performance trading systems on the Solana blockchain
-* Developed HFT (High-Frequency Trading) trading systems using Go, Rust, and TypeScript, optimized for low-latency execution (<200ms end-to-end)
-* Implemented a microservices architecture with NATS JetStream, Redis, and PostgreSQL for enhanced reliability and scalability
-* Created automated market-making logic for Solana DEXs, integrating with TradingView for advanced charting and signals
-* Built production-grade arbitrage systems featuring LST (Liquid Staking Token) strategies with flash loan integration
-* Designed Scanner → Planner → Executor architecture for real-time market opportunity detection and execution
-* Integrated Jito Shredstream for 400ms early alpha advantage and bundle submission for MEV protection
-* Implemented comprehensive monitoring stack with Prometheus and Grafana for real-time performance metrics
-* Developed local quote service in Go achieving 2-10ms response times, replacing 100-300ms API calls
-* Maintained technical blog documenting Solana trading system development with 30+ technical articles
+**Overview:**
+* Founded Solana Playground, building NFT platforms, DeFi applications, and high-performance trading systems on Solana blockchain
+* Five years of Solana development experience with three production trading system prototypes, each solving specific architectural challenges
+* Maintained comprehensive technical blog with 30+ detailed posts documenting architecture decisions, performance optimization, and lessons learned
+
+**NFT and DeFi Projects (2020-2022):**
+* Built NFT minting and marketplace platforms with Metaplex integration and SPL token standards
+* Developed wallet management systems with RPC failover and transaction retry strategies
+* Integrated with major DeFi protocols including Raydium, Orca, Serum, and OpenBook DEX
+* Gained expertise in Solana fundamentals: account rent, PDAs, compute units, transaction anatomy
+
+**Trading System Prototypes (2023-2025):**
+* **Prototype 1 - Next.js Platform:** Full-stack web application with 150+ CLI tools for NFT and OpenBook DEX trading, 7+ RPC endpoints with failover, Firebase backend
+* **Prototype 2 - TypeScript Bot:** Mature trading system with 5+ strategies (arbitrage, grid trading, DCA, limit orders, AI analysis), queue-based execution, multi-tier wallet segregation, 42+ CLI commands
+* **Prototype 3 - Polyglot System:** Performance-focused arbitrage system achieving 10-30x speed improvement (2-10ms vs 100-300ms) using Go's SolRoute SDK for local routing, flash loan integration, Jito bundle submission
+
+**Production HFT System (2025-Present):**
+* Designed and implemented Scanner → Planner → Executor microservices architecture for sub-500ms end-to-end execution
+* Developed local quote service in Go achieving 2-10ms response times (10-30x faster than API-based routing)
+* Built event-driven architecture using NATS JetStream with FlatBuffers for high-performance message serialization
+* Implemented LST (Liquid Staking Token) arbitrage strategies with flash loan integration (zero capital requirement)
+* Integrated Jito Shredstream for 400ms early market data advantage and MEV-protected bundle submission
+* Deployed comprehensive observability stack: Prometheus metrics, Grafana dashboards, Jaeger distributed tracing, Loki log aggregation
+* Created pool discovery service and RPC proxy architecture for intelligent endpoint failover across 95+ RPC providers
+* Developed gRPC streaming infrastructure for real-time quote delivery with sub-10ms latency
+* Implemented automated market-making logic for Solana DEXs with TradingView integration
 
 ### Department of Justice
 **Senior Developer (Contractor) | April 2025 - Present**
