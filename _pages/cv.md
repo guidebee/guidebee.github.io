@@ -90,6 +90,21 @@ Innovative full-stack developer with over 20 years of experience in web applicat
 
 ## Professional Experience
 
+### Solana Playground
+**Founder and Senior Developer (Part-time) | February 2020 - Present**
+*Technologies: Go, Rust, TypeScript, NATS, Redis, PostgreSQL, Solana Blockchain*
+
+* Founded Solana Playground, focusing on high-performance trading systems on the Solana blockchain
+* Developed HFT (High-Frequency Trading) trading systems using Go, Rust, and TypeScript, optimized for low-latency execution (<200ms end-to-end)
+* Implemented a microservices architecture with NATS JetStream, Redis, and PostgreSQL for enhanced reliability and scalability
+* Created automated market-making logic for Solana DEXs, integrating with TradingView for advanced charting and signals
+* Built production-grade arbitrage systems featuring LST (Liquid Staking Token) strategies with flash loan integration
+* Designed Scanner → Planner → Executor architecture for real-time market opportunity detection and execution
+* Integrated Jito Shredstream for 400ms early alpha advantage and bundle submission for MEV protection
+* Implemented comprehensive monitoring stack with Prometheus and Grafana for real-time performance metrics
+* Developed local quote service in Go achieving 2-10ms response times, replacing 100-300ms API calls
+* Maintained technical blog documenting Solana trading system development with 30+ technical articles
+
 ### Department of Justice
 **Senior Developer (Contractor) | April 2025 - Present**
 *Technologies: Angular, React, .NET Core, Azure*
