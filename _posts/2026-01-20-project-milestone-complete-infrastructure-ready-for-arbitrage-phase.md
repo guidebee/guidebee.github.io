@@ -52,7 +52,7 @@ After months of development, the Solana HFT Trading System has reached a critica
 
 ### What's Built and Working
 
-**Go Services (~3,000 lines of production code)**:
+**Go Codebase (~62,000 lines of production code across 206 files)**:
 
 | Service | LOC | Status | Description |
 |---------|-----|--------|-------------|
@@ -60,7 +60,16 @@ After months of development, the Solana HFT Trading System has reached a critica
 | Local Quote Service | 1,160 | Production Ready | 10 DEX protocols, dual-cache, WebSocket subscriptions |
 | External Quote Service | 632 | Production Ready | Multi-provider (Jupiter, DFlow, OKX), rate limiting |
 | Pool Discovery | 513 | Production Ready | On-chain discovery, API enrichment, Redis caching |
-| Event Logger | 218 | Production Ready | 6-stream NATS, FlatBuffers, Loki integration |
+| Event Logger | 1,060 | Production Ready | 6-stream NATS, FlatBuffers, Loki integration |
+
+**Full Breakdown**:
+
+| Directory | Files | Lines | Description |
+|-----------|-------|-------|-------------|
+| `go/cmd/` | 7 | 3,840 | Service entry points |
+| `go/internal/` | 68 | 22,794 | Internal business logic |
+| `go/pkg/` | 131 | 35,658 | SDK/library code |
+| **Total** | **206** | **62,292** | Production Go code |
 
 **Infrastructure (21 Docker services)**:
 - Event Streaming: NATS JetStream with 6 configured streams
