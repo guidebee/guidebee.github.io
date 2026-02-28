@@ -5,11 +5,12 @@ permalink: /references/
 author_profile: true
 ---
 
-Comprehensive technical documentation for the Solana Trading System, covering architecture, implementation plans, design decisions, and operational guides.
+> **Note:** These are initial design and planning documents created during early development of the Solana Trading System. They reflect the thinking and architecture decisions at the time of writing and **may not be up to date** with the current implementation. Refer to the [blog posts](/year-archive/) for the latest development progress.
 
 ## Documentation Index
 
 {% assign sorted_docs = site.docs | sort: "slug" %}
 {% for doc in sorted_docs %}
-- [{{ doc.title }}]({{ doc.url }})
+{% assign docname = doc.path | split: "/" | last | split: "." | first %}
+- **{{ docname }}** — [{{ doc.title }}]({{ doc.url }})
 {% endfor %}
