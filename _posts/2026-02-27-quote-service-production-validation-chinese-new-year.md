@@ -22,7 +22,7 @@ excerpt: "Happy Chinese New Year! Comprehensive gRPC quote service validation de
 
 Before diving into the technical content, I want to take a moment to celebrate.
 
-Today, February 27, 2026, marks the **Chinese New Year** — 新年快乐, and best wishes to everyone celebrating the Year of the Snake! May this year bring abundance, wisdom, and great opportunities to all of you.
+ **Chinese New Year** — 新年快乐, and best wishes to everyone celebrating the Year of the 🐎 ! May this year bring abundance, wisdom, and great opportunities to all of you.
 
 ---
 
@@ -275,7 +275,7 @@ The foundation is solid. The next phase focuses on strategy execution — turnin
 
 On a day when family milestones and cultural celebrations remind us why we build things, it's satisfying to close out a major technical validation. The quote services are production ready — 9.3/10 overall, zero critical deviations, oracle prices fully populated, and arbitrage detection running at 99.9% accuracy.
 
-Happy Chinese New Year to everyone. May the Year of the Snake bring sharp thinking, precise execution, and profitable opportunities — in trading and in life.
+Happy Chinese New Year to everyone. May the Year of the Horse bring sharp thinking, precise execution, and profitable opportunities — in trading and in life.
 
 And Harry — welcome to the University of Melbourne. The best is yet to come.
 
