@@ -233,6 +233,9 @@ collections:
   talks:
     output: false
     permalink: /:collection/:path/
+  docs:
+    output: true
+    permalink: /docs/:path/
 
 
 # These settings control how pages and collections are included in the site
@@ -288,6 +291,14 @@ defaults:
       type: talks
     values:
       layout: talk
+      author_profile: true
+      share: true
+  # _docs
+  - scope:
+      path: ""
+      type: docs
+    values:
+      layout: single
       author_profile: true
       share: true
 
