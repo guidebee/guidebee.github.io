@@ -12,5 +12,5 @@ author_profile: true
 {% assign sorted_docs = site.docs | sort: "slug" %}
 {% for doc in sorted_docs %}
 {% assign docname = doc.path | split: "/" | last | split: "." | first %}
-- **{{ docname }}** — [{{ doc.title }}]({{ doc.url }})
+- [{{ docname }}]({{ doc.url }})
 {% endfor %}
