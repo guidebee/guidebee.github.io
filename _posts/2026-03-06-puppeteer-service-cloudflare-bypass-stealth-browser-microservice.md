@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "Puppeteer Service: A Stealth Browser Microservice for Cloudflare-Protected APIs"
+title: "Puppeteer Service: A Stealth Browser Microservice for Bot-Protected APIs"
 date: 2026-03-06
 permalink: /posts/2026/03/puppeteer-service-cloudflare-bypass-stealth-browser-microservice/
 categories:
@@ -12,9 +12,8 @@ tags:
   - typescript
   - architecture
   - puppeteer
-  - cloudflare
   - microservice
-excerpt: "How we built a headless Chromium microservice with puppeteer-extra-plugin-stealth and residential proxy support to reliably fetch data from Cloudflare-protected DeFi APIs — and the non-obvious design decisions that made it work."
+excerpt: "How we built a headless Chromium microservice with puppeteer-extra-plugin-stealth and residential proxy support to reliably fetch data from bot-protected DeFi APIs — and the non-obvious design decisions that made it work."
 ---
 
 ## Disclaimer
@@ -30,23 +29,23 @@ Use this knowledge responsibly.
 ## TL;DR
 
 - Built a small TypeScript HTTP microservice (`puppeteer-service`) that routes any URL fetch through a stealth headless Chromium browser
-- Solves Cloudflare bot protection that blocks all conventional HTTP clients
+- Solves bot protection that blocks all conventional HTTP clients
 - Uses `puppeteer-extra-plugin-stealth` to defeat browser fingerprinting, and CDP `page.authenticate()` to supply residential proxy credentials (the only method Chrome actually honours)
 - Supports both GET and POST methods via a clean `POST /fetch` JSON API
 - Deploys as a Docker sidecar — any service in the stack can delegate a protected fetch to it
 
 ---
 
-## The Problem: Cloudflare vs. Direct HTTP Clients
+## The Problem: Bot Protection vs. Direct HTTP Clients
 
-Many DeFi data APIs sit behind Cloudflare's bot protection. The challenge isn't just a simple `403` — Cloudflare runs a JavaScript fingerprinting challenge that detects:
+Many DeFi data APIs sit behind bot protection systems that run JavaScript fingerprinting challenges. These systems detect:
 
 - The `navigator.webdriver` flag set by Selenium/Puppeteer
 - Missing browser plugins expected in a normal user session
 - Canvas and WebGL fingerprint anomalies typical of headless environments
-- IP reputation (datacenter IPs are blocked; residential IPs are allowed)
+- IP reputation (datacenter IPs are flagged; residential IPs are allowed)
 
-A plain `fetch()` or `axios` call from a Node.js process gets blocked immediately. Even off-the-shelf bypass tools like **FlareSolverr v3** fail when combined with proxy services, because Chrome's `--proxy-server` flag silently ignores embedded `user:pass@` credentials in newer versions — producing `ERR_NO_SUPPORTED_PROXIES` with no useful error message.
+A plain `fetch()` or `axios` call from a Node.js process gets blocked immediately. Even off-the-shelf browser automation tools fail when combined with proxy services, because Chrome's `--proxy-server` flag silently ignores embedded `user:pass@` credentials in newer versions — producing `ERR_NO_SUPPORTED_PROXIES` with no useful error message.
 
 We needed a reliable, reusable solution that any service in the trading stack could delegate to.
 
@@ -80,7 +79,7 @@ Caller (Go / TypeScript / curl)
         Protected API endpoint
 ```
 
-The caller never deals with browsers, proxies, or Cloudflare. It just calls `POST /fetch`.
+The caller never deals with browsers, proxies, or bot protection. It just calls `POST /fetch`.
 
 ---
 
@@ -190,7 +189,7 @@ async function fetchViaProxy(req: FetchRequest): Promise<unknown> {
 
 The two HTTP methods need fundamentally different approaches because `page.goto()` cannot send a request body.
 
-**GET requests** — use `page.goto()` which triggers the full page lifecycle, including Cloudflare's JavaScript challenge resolution:
+**GET requests** — use `page.goto()` which triggers the full page lifecycle, including any JavaScript challenge resolution:
 
 ```typescript
 if (method === "GET") {
@@ -213,7 +212,7 @@ if (method === "GET") {
 }
 ```
 
-The `waitUntil: "networkidle0"` option is important — it waits until the network is idle, which gives Cloudflare's challenge scripts enough time to complete before we read the response.
+The `waitUntil: "networkidle0"` option is important — it waits until the network is idle, which gives any challenge scripts enough time to complete before we read the response.
 
 **POST requests** — navigate to `about:blank` first (to initialise the browser context with the proxy and stealth patches), then call `fetch()` from inside the browser via `page.evaluate()`:
 
@@ -247,7 +246,7 @@ The `waitUntil: "networkidle0"` option is important — it waits until the netwo
 }
 ```
 
-Executing `fetch()` inside `page.evaluate()` means the request goes out through the browser's networking stack — the residential proxy is in effect, and the stealth plugin has already patched the browser context. The caller gets a POST with a body, through the proxy, with full Cloudflare bypass.
+Executing `fetch()` inside `page.evaluate()` means the request goes out through the browser's networking stack — the residential proxy is in effect, and the stealth plugin has already patched the browser context. The caller gets a POST with a body, through the proxy, with full bot protection bypass.
 
 ### The HTTP Server
 
@@ -343,7 +342,7 @@ async function fetchViaChrome(req: PuppeteerFetchRequest): Promise<unknown> {
   return res.json();
 }
 
-// Example: POST to a GraphQL API behind Cloudflare
+// Example: POST to a GraphQL API behind a protected endpoint
 const data = await fetchViaChrome({
   url: "https://some-protected-api.io/graphql",
   method: "POST",
@@ -395,7 +394,7 @@ func (c *PuppeteerClient) Fetch(
 # Health check
 curl http://localhost:3001/health
 
-# GET a Cloudflare-protected JSON endpoint
+# GET a bot-protected JSON endpoint
 curl -s -X POST http://localhost:3001/fetch \
   -H "Content-Type: application/json" \
   -d '{
@@ -537,17 +536,17 @@ The ~1–2 second launch overhead is acceptable for the use case this service wa
 
 ### Why `document.body.innerText` for GET Responses
 
-When Chrome navigates to a URL that returns `Content-Type: application/json`, it renders a built-in JSON viewer — the raw JSON is available as `document.body.innerText`. This is simpler than intercepting the network response at the CDP level, and it works reliably whether the Cloudflare challenge fired or not.
+When Chrome navigates to a URL that returns `Content-Type: application/json`, it renders a built-in JSON viewer — the raw JSON is available as `document.body.innerText`. This is simpler than intercepting the network response at the CDP level, and it works reliably whether a bot protection challenge fired or not.
 
 ### Why `puppeteer-extra-plugin-stealth`
 
-Cloudflare's detection checks for:
+Bot protection systems typically check for:
 - `navigator.webdriver === true` (set by default in Puppeteer)
 - Absence of browser plugins (headless has none)
 - Canvas/WebGL fingerprint anomalies
 - Chrome's `languages` property being empty
 
-The stealth plugin patches all of these to match a real user session. Without it, Cloudflare blocks the request even through a residential proxy.
+The stealth plugin patches all of these to match a real user session. Without it, the protection layer blocks the request even through a residential proxy.
 
 ### Proxy Credentials via CDP
 
@@ -557,7 +556,7 @@ As mentioned earlier — embedding `user:pass@host:port` in `--proxy-server` is 
 
 ## Onboarding a New Protected API
 
-When adding a new Cloudflare-protected data source:
+When adding a new bot-protected data source:
 
 1. **Identify the correct headers** — open browser DevTools, filter Network by XHR/Fetch, find the real API call, copy `Origin`, `Referer`, `Accept`, and any auth headers.
 
@@ -581,9 +580,9 @@ When adding a new Cloudflare-protected data source:
 | `200` | Success | Parsed JSON returned |
 | `400` | Bad request | Missing `url` field or malformed JSON |
 | `404` | Not found | Wrong path |
-| `500` | Proxy error | Cloudflare 403/429, JSON parse failure, browser crash |
+| `500` | Proxy error | Protected API 403/429, JSON parse failure, browser crash |
 
-Transient Cloudflare `403` responses do occur under concurrent load — Cloudflare's challenge occasionally slips through. The consuming service should treat these as retriable failures and handle them at the retry/enrichment layer rather than in the puppeteer-service itself. An ~89% success rate under normal concurrent load is typical and acceptable.
+Transient `403` responses do occur under concurrent load — the bot protection challenge occasionally slips through. The consuming service should treat these as retriable failures and handle them at the retry/enrichment layer rather than in the puppeteer-service itself. An ~89% success rate under normal concurrent load is typical and acceptable.
 
 ---
 
@@ -591,7 +590,7 @@ Transient Cloudflare `403` responses do occur under concurrent load — Cloudfla
 
 ### What This Service Enables
 
-- Any service in the stack can fetch data from Cloudflare-protected APIs without implementing browser automation itself
+- Any service in the stack can fetch data from bot-protected APIs without implementing browser automation itself
 - The complexity of proxy credential injection, stealth patching, and GET/POST strategy is encapsulated in one ~230-line file
 - Adding a new protected data source is a matter of identifying headers and adding a thin wrapper — no changes to the service itself
 
@@ -608,7 +607,7 @@ With the data layer infrastructure solidified, the focus shifts to strategy exec
 
 ## Conclusion
 
-The puppeteer-service is a good example of the "boring infrastructure" that makes complex systems work. Cloudflare bot protection is a real operational challenge for any system that depends on DeFi data APIs, and trying to fight it with conventional HTTP clients is a losing battle. A stealth headless browser with residential proxy support, packaged as a simple HTTP sidecar, is the right level of complexity: it solves the problem cleanly, stays reusable, and keeps the details out of every consumer.
+The puppeteer-service is a good example of the "boring infrastructure" that makes complex systems work. Bot protection is a real operational challenge for any system that depends on DeFi data APIs, and trying to fight it with conventional HTTP clients is a losing battle. A stealth headless browser with residential proxy support, packaged as a simple HTTP sidecar, is the right level of complexity: it solves the problem cleanly, stays reusable, and keeps the details out of every consumer.
 
 The three non-obvious lessons that cost the most debugging time: `page.authenticate()` over URL credentials, `libasound2` vs `libasound2t64`, and the pnpm postinstall block. Hopefully this post saves someone else the same discovery.
 
@@ -635,4 +634,4 @@ The three non-obvious lessons that cost the most debugging time: `page.authentic
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
 - **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
 
-*This is post #26 in the Solana Trading System development series. A deep dive into the puppeteer-service: a stealth headless Chromium microservice that enables any service in the trading stack to fetch data from Cloudflare-protected DeFi APIs through a clean HTTP sidecar.*
+*This is post #26 in the Solana Trading System development series. A deep dive into the puppeteer-service: a stealth headless Chromium microservice that enables any service in the trading stack to fetch data from bot-protected DeFi APIs through a clean HTTP sidecar.*
