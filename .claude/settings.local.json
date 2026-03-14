@@ -12,7 +12,8 @@
       "Bash(test:*)",
       "Bash(dir C:Tradingguidebee.github.io_posts /b /o-d)",
       "Bash(bundle exec jekyll build:*)",
-      "Bash(dir \"C:\\\\Trading\\\\guidebee.github.io\\\\_posts\" /b /o-d)"
+      "Bash(dir \"C:\\\\Trading\\\\guidebee.github.io\\\\_posts\" /b /o-d)",
+      "Read(//c/Trading/solana-trading-system/docs/**)"
     ],
     "deny": [],
     "ask": []
