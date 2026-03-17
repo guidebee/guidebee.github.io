@@ -20,7 +20,7 @@ excerpt: "A practical guide to configuring OpenClaw with multiple AI providers �
 ## TL;DR
 
 - **Visual Studio Professional** gives you $50/month in Azure credits — enough to run GPT-4.1 and GPT-5 as your primary OpenClaw models at zero marginal cost
-- **GitHub Copilot** (included in VS Pro) lets you use **Claude Sonnet 4.6** for free within the subscription — excellent for chat-heavy workflows
+- **GitHub Copilot** (separate subscription) lets you use **Claude Sonnet 4.6** for free within the subscription — excellent for chat-heavy workflows
 - **MiniMax M2.5** (~$0.30/$1.20 per M tokens) is the best cheap fallback when Azure credits are exhausted
 - **Ollama + DeepSeek/Qwen** on a Mac mini or local server gives you completely free, private inference — ideal for heartbeats and background tasks
 - OpenClaw's `models.json` lets you mix all these providers in one config with zero code changes
@@ -158,7 +158,7 @@ Using `azure-openai-gpt41/gpt-4.1` for both compaction and heartbeat means all b
 
 ## Tier 2: GitHub Copilot — Free Claude Sonnet 4.6
 
-Visual Studio Professional also includes **GitHub Copilot**. OpenClaw can use Copilot as an API backend, which means you get **Claude Sonnet 4.6** (a frontier model) at zero extra cost — entirely within the Copilot subscription.
+If you have a **GitHub Copilot subscription**, OpenClaw can use it as an API backend, which means you get **Claude Sonnet 4.6** (a frontier model) at zero extra cost — entirely within your existing Copilot subscription.
 
 ### How it works
 
@@ -405,8 +405,8 @@ And a per-channel Telegram override so interactive conversations use Claude:
 ├──────────────────────────┼──────────────────┼────────────────────┤
 │  Azure GPT-5 (preview)   │ $0 (preview)     │ Heavy reasoning    │
 ├──────────────────────────┼──────────────────┼────────────────────┤
-│  Claude Sonnet 4.6       │ $0 (Copilot)     │ Telegram chat,     │
-│  via GitHub Copilot      │                  │ coding tasks       │
+│  Claude Sonnet 4.6       │ $0 (within       │ Telegram chat,     │
+│  via GitHub Copilot      │ Copilot sub)     │ coding tasks       │
 ├──────────────────────────┼──────────────────┼────────────────────┤
 │  MiniMax M2.5            │ ~$2–5            │ High-volume        │
 │                          │ (if used)        │ interactive tasks  │
