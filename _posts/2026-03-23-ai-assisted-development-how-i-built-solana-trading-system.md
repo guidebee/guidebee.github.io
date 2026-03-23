@@ -109,13 +109,13 @@ There was also an earlier prototype: an agent that connected to TradingView char
 
 ---
 
-## GitHub Copilot: The Other Half of the Equation
+## GitHub Copilot: Cost-Effective for the Routine Work
 
-Claude Code handles the large, architectural, multi-file work. GitHub Copilot handles everything else.
+Running frontier AI models on everything gets expensive fast. One of the practical lessons from this project was that not every task needs the most capable model.
 
-While Claude Code is thinking about whether a service should use push or pull semantics over NATS, Copilot is completing the retry loop I am currently typing. While Claude Code is generating a Rust RPC proxy with correct connection pooling, Copilot is suggesting the next line of the protocol buffer definition I started.
+The approach I settled on: use Claude Code for complex, context-heavy work — multi-file refactors, architectural decisions, debugging sessions that require holding a lot of state in mind. Use GitHub Copilot for simpler, repetitive tasks where it is more cost-effective — boilerplate completions, straightforward pattern implementations, protocol buffer field definitions, retry loop scaffolding.
 
-They do not compete. They cover different time horizons: Copilot for seconds, Claude Code for minutes and hours. Together they produce a velocity that is qualitatively different from what either provides alone.
+The two tools are not competing; they are covering different cost-complexity tiers. Routing tasks to the right tool keeps the overall API bill manageable without sacrificing quality on the work that actually needs a more capable model. For a hobby project with no budget, that cost discipline matters.
 
 ---
 
