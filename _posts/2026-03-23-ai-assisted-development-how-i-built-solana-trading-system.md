@@ -145,7 +145,11 @@ I also found that the quality of AI output depends almost entirely on the qualit
 
 I wrote in the LinkedIn article that the transition from full-stack developer to AI engineer is not about learning AI — it is about learning how to direct AI. That is what this project taught me in practice.
 
-The Solana trading system is now in active execution, processing live arbitrage opportunities across three confirmed DEX protocols, with 57,000+ events validated and on-chain execution confirmed. It was built by one person with AI as the team.
+The Solana trading system is still under active development — there is a lot left to build. The execution layer is validated, the pipeline architecture is proven, but the planner service, live risk controls, and competitive tip strategy are all still in progress. This is not a finished product. It is a moving target.
+
+What AI tools change is the *pace* at which the target can be chased. When market conditions shift or a new DEX becomes relevant, I can pivot the implementation strategy in days rather than weeks. When a debugging session uncovers a new constraint, that constraint gets encoded into the AI's memory and shapes every future suggestion. When a design decision needs revisiting, I can run it through the multi-LLM review process in an afternoon.
+
+The project is still being built. But it is being built faster, and with the ability to change direction, than it would be without these tools. That is the real value — not automation, but acceleration and adaptability.
 
 I do not think that model is unique to me or to this project. I think it is how a significant fraction of software will be built in the next three years.
 
