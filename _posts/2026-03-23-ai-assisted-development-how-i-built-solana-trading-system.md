@@ -31,7 +31,7 @@ In late 2025, I started building a Solana high-frequency trading system. On pape
 
 That is the kind of project that normally requires a team of five or six engineers, six to twelve months, and a proper sprint board.
 
-I built it in four months, mostly alone.
+I built it in four months, mostly alone — a couple of hours on weekday evenings and some weekend time, treated as a hobby project rather than a full-time job.
 
 The difference was how I used AI tools — not as autocomplete, not as a Stack Overflow replacement, but as a genuine development team where I was the lead and the AI filled the specialist roles.
 
