@@ -13,7 +13,22 @@
       "Bash(dir C:Tradingguidebee.github.io_posts /b /o-d)",
       "Bash(bundle exec jekyll build:*)",
       "Bash(dir \"C:\\\\Trading\\\\guidebee.github.io\\\\_posts\" /b /o-d)",
-      "Read(//c/Trading/solana-trading-system/docs/**)"
+      "Read(//c/Trading/solana-trading-system/docs/**)",
+      "Read(//home/james/workspace/solana-trading-system/ts/tests/swap-test/src/**)",
+      "Read(//mnt/ssd4tb/workspace/solana-trading-system/ts/tests/swap-test/src/**)",
+      "Read(//home/james/workspace/solana-trading-system/ts/tests/jupiter-test/src/**)",
+      "Read(//mnt/ssd4tb/workspace/solana-trading-system/ts/tests/jupiter-test/src/**)",
+      "Read(//home/james/workspace/solana-trading-system/ts/tests/swap-test/docs/**)",
+      "Read(//mnt/ssd4tb/workspace/solana-trading-system/ts/tests/swap-test/docs/**)",
+      "Read(//home/james/workspace/solana-trading-system/config/**)",
+      "Read(//mnt/ssd4tb/workspace/solana-trading-system/config/**)",
+      "Read(//home/james/workspace/solana-trading-system/ts/tests/jupiter-test/docs/**)",
+      "Read(//mnt/ssd4tb/workspace/solana-trading-system/ts/tests/jupiter-test/docs/**)",
+      "Read(//home/james/workspace/solana-trading-system/docs/**)",
+      "Read(//mnt/ssd4tb/workspace/solana-trading-system/docs/**)",
+      "Read(//mnt/ssd4tb/workspace/solana-trading-system/ts/tests/bot-tracing-test/**)",
+      "Read(//home/james/workspace/solana-trading-system/ts/tests/bot-tracing-test/src/**)",
+      "Read(//mnt/ssd4tb/workspace/solana-trading-system/ts/tests/bot-tracing-test/src/**)"
     ],
     "deny": [],
     "ask": []
