@@ -22,7 +22,7 @@ A blog post about my father's last six months.
 
 It rained on the last day of August.
 
-The ground at Xichang Cemetery was soft and wet. I followed the rhythm of the ceremony and lowered my father's ashes into the small plot. My mother stood beneath an umbrella and quietly repeated an old saying: "Rain means fortune for the fields."
+The ground at Xichang Cemetery was soft and wet. I followed the rhythm of the ceremony and lowered my father's ashes into the small plot. My mother stood beneath an umbrella and quietly repeated an old saying from our county: "Rain at burial brings good fortune to the descendants."
 
 I laughed a little. My eyes were wet too.
 
@@ -108,9 +108,9 @@ There is a small thing I have never told anyone.
 
 Every winter when I went home, my father would bring water chestnuts home in the summer and keep them in the freezer, waiting for my arrival so he could take them out and give them to me. This past Chinese New Year, I had just had polyp surgery and could not eat them. That batch of water chestnuts, I never got to eat.
 
-On August 31, it rained, and we buried his ashes at Xichang Cemetery. My mother stood beneath her umbrella and said the old saying again: "Rain means fortune for the fields."
+On August 31, it rained, and we buried his ashes at Xichang Cemetery. My mother stood beneath her umbrella and said the old saying again: "Rain at burial brings good fortune to the descendants."
 
-I know that saying is really meant for the living. It is something the older generation passes down to make grief a little easier to carry. I did not try to decide whether it was true. I only felt that it was the sky's way of telling us: *It is over now, and it is all right.*
+I know that saying is really meant for the living. It is a local blessing: when rain falls as someone is laid to rest, it is said to bring good fortune to those they leave behind. It is something the older generation passes down to make grief a little easier to carry. I did not try to decide whether it was true. I only felt that it was the sky's way of telling us: *It is over now, and it is all right.*
 
 Every winter from now on, if I am still lucky enough to eat water chestnuts, I will probably think of him, and probably cry a little. But alongside the tears, there may be a small smile too, because I will remember:
 
