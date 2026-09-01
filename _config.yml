@@ -9,10 +9,10 @@
 # Basic Site Settings
 locale                   : "en-US"
 site_theme               : "default" # Currently available options are "default", "air"
-title                    : "James Shen - Solana Trading System Development"
+title                    : "James Shen - Software Engineer & Builder"
 title_separator          : "-"
 name                     : &name "James Shen"
-description              : &description "Full-stack developer documenting the journey of building a production-grade Solana trading system"   # Update this with a general description of your site, this is the default if not overridden by a page
+description              : &description "Software engineer and solution architect showcasing work across cloud, AI, blockchain, mobile, data, and embedded systems."
 url                      : https://guidebee.github.io # The base hostname & protocol for your site e.g. "https://[your GitHub username].github.io",
                                                            # or if you already have some other page hosted on Github then use "https://[your GitHub username].github.io/[Your Repo Name]"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
@@ -26,7 +26,7 @@ author:
   avatar           : "profile.png"
   name             : "James Shen"
   pronouns         : # example: "she/her"  
-  bio              : "Innovative full-stack developer with 20+ years of experience. Currently building a high-frequency trading system on Solana. Expert in React, .NET, Python, and cloud platforms."
+  bio              : "Full-stack software engineer and solution architect with 20+ years of experience building cloud, AI, blockchain, mobile, data, and embedded systems."
   location         : 
   employer         : 
   uri              : # URL
@@ -148,9 +148,11 @@ og_description           :  # Social media default site image description
 # For specifying social profiles
 # - https://developers.google.com/structured-data/customize/social-profiles
 social:
-  type                   : # Person or Organization (defaults to Person)
-  name                   : # If the user or organization name differs from the site's name
-  links: # An array of links to social media profiles
+  type                   : Person
+  name                   : James Shen
+  links:
+    - https://github.com/guidebee
+    - https://www.linkedin.com/in/guidebee
 
 
 # Analytics
