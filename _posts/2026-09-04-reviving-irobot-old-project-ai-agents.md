@@ -23,7 +23,7 @@ excerpt: "Six years ago I started building an AI-agent platform for Android and 
 
 ## TL;DR
 
-- **iRobot** is a project I started six years ago and shelved: a C++ rewrite of [scrcpy](https://github.com/Genymobile/scrcpy) that drives real Android devices over ADB and exposes that control to AI agents as two plain TCP sockets — one streaming frames out, one taking actions in.
+- **[iRobot](https://github.com/guidebee/irobot)** is a project I started six years ago and shelved: a C++ rewrite of [scrcpy](https://github.com/Genymobile/scrcpy) that drives real Android devices over ADB and exposes that control to AI agents as two plain TCP sockets — one streaming frames out, one taking actions in.
 - I picked it back up last week, after moving to Melbourne and finally having a quiet weekend for the first time in months.
 - This time the difference wasn't the idea — it was who was doing the work. Claude Code and GitHub Copilot rewrote the core in C++23, built an entire desktop authoring tool (the Gym IDE) from scratch, and even helped draft and self-critique the design doc for where the project goes next.
 - I still make every call on direction and scope — what gets built, what gets rejected, what stays out of the runtime loop — but the volume of work one evening can now produce is not comparable to six years ago.
