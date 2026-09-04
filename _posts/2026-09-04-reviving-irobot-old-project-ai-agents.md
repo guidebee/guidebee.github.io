@@ -187,4 +187,4 @@ I don't think the interesting story here is "AI wrote my code." It's that a proj
 - **GitHub**: [guidebee/irobot](https://github.com/guidebee/irobot)
 - **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
 
-*This is post #35 in the Solana Trading System development series — a brief detour to an older, unrelated project, but the same story: AI agents doing the heavy lifting, a human still deciding what's worth building.*
+*This is post #35. What started as a Solana Trading System development log has grown into something broader: this blog now follows AI-native development in general — AI agents, AI-assisted engineering, and the tools and workflows that come with building this way — wherever the current project happens to be. Same throughline either way: AI agents doing the heavy lifting, a human still deciding what's worth building.*
