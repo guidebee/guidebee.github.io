@@ -249,6 +249,46 @@ scene-manager policy (with a `replace` trace event) rather than hiding it inside
 | 2 | tutorial line 1 | guide prompt at the first marker | 1 rule |
 | 3 | tutorial line 2 | guide prompt at the second marker | 1 rule |
 
+#### Where's the gameplay?
+
+None of the four slots *is* the gameplay. Scene slots are the level's **director**: they sequence
+story and presentation around the play. Every operation in scene 30's slots is a scene
+operation. Slot 0 uses animations, screen transitions, actor movement batches, camera switches,
+audio, text and system variables. Slot 1 uses a dialogue, a movement batch and some flags. Slots 2
+and 3 each show one guide prompt. Nothing in them moves the hero or resolves a collision.
+
+The play itself comes from two other places:
+
+```text
+                         one tick of scene 30
+                                  │
+  ┌───────────────────────────────┼────────────────────────────────┐
+  ▼                               ▼                                ▼
+MECHANICS (Java, always)    ACTOR PROGRAMS (per actor)       SCENE PROGRAM SLOTS
+hero body: input, run,      one program per actor family,    slot 0 director (intro)
+jump, physics, firing       always at slot 65535:            slot 1 finish
+world loop, contacts,       walker, turtle, mushroom,        slot 2 tutorial line 1
+damage, portals, camera     coin, fish, block...             slot 3 tutorial line 2
+                            owner: Java class or Engine 2    owner: Java interpreter
+                                                             or Engine 2, per slot
+  ◄────────────── the gameplay ──────────────►               ◄── story & presentation ──►
+```
+
+1. **Mechanics** (frame phases 1, 2 and 4): the hero's body (input, running, jumping, physics,
+   firing), the world update, contacts, damage, portals and the camera. These stay as Java code
+   permanently. That's the *rules sequence, code does mechanics* split.
+2. **Actor programs** (phase 2a): each actor family (walkers, turtles, mushrooms, coins, flying
+   fish, blocks) has a module with a single program at the reserved slot 65535, visited once per
+   tick for every placed actor. These decide what each enemy and pickup does. They have Java or
+   Engine 2 owners just like scene slots, but chosen per actor family rather than per
+   `(scene, slot)`. The flying fish, coin magnet and mushroom families already run on Engine 2.
+
+The hero's own decisions (locomotion, weapons, forms, mounts, death and revival) are the largest
+piece still in Java. They are planned as rules in the hero port tasks.
+
+That's why moving slot 2 to Engine 2 doesn't change how scene 30 *plays*. It only changes who
+decides when the tutorial prompt appears.
+
 ![Scene 30's intro on a Pixel, with slot 2 owned by Engine 2](../images/supermorse_scene30_engine2_intro.png)
 
 **Slot 2 as rules.** This is the whole program for slot 2, in readable Engine 2 source:
