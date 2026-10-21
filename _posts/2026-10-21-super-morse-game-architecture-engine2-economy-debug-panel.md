@@ -107,6 +107,154 @@ the Java owner and under the Engine 2 pilots.
 Rewriting every actor at once would have stalled the game for months. Instead, Engine 2 is
 adopted **per actor resource and per scene slot**, behind one selection path.
 
+### Owners: Java (legacy) versus Engine 2
+
+Throughout this post, and the codebase, the word **owner** means *the one piece of code that
+decides what a thing does this tick*. Every actor instance and every scene-program slot has
+exactly one owner for the whole attempt. There are two kinds.
+
+**The Java owner** (also called the **legacy owner**) is the behavior the game shipped with:
+
+- for **actors**, a hand-written Java class per family (`Actor61Effect`, `FishSpawner`, the walker,
+  plant and block classes) whose `tick()` method runs inside `MorseWorld`'s instance loop;
+- for **scenes**, the Java scene-program interpreter in `SceneProgramHost`, which steps each slot's
+  program in phase 3 of the frame.
+
+"Legacy" doesn't mean broken. It means *this is the version we are migrating away from*. It
+is still the default for everything Engine 2 has not taken over, and it's the reference that
+every Engine 2 port is compared against.
+
+**The Engine 2 owner** is a compiled rule module (`.e2m`) running on the Engine 2 VM. The VM itself
+knows nothing about Super Morse. It reaches the game through the **hosts** (`Engine2ActorHost`,
+`Engine2SceneHost`), whose operation handlers call into the same world and scene services the
+Java owner uses.
+
+```text
+                    MorseWorld instance loop (phase 2a) / scene programs (phase 3)
+                                         │
+                          who owns this actor / slot?
+                       ┌─────────────────┴─────────────────┐
+                       ▼                                   ▼
+               Java owner (legacy)                   Engine 2 owner
+          FishSpawner.tick(), Actor61Effect,    VM visits the .e2m module
+          SceneProgramHost.tickProgram()        ──► Engine2ActorHost / SceneHost
+                       │                              op handlers
+                       │                                   │
+                       └──────────────┬────────────────────┘
+                                      ▼
+            shared game mechanics: movement, collision, contacts, camera,
+            dialogue, transitions, system variables, actor state store
+```
+
+This is the split Engine 2 was designed around: **rules sequence, code does mechanics**. Swapping
+the owner changes *who decides* (when the fish launches, which rule kills it). It doesn't change
+*how* the fish moves or collides, because both owners call the same mechanics in the same
+frame phase.
+
+Three rules keep the two owners from stepping on each other:
+
+1. **One owner per actor or slot, fixed for the attempt.** Selection happens at attempt start;
+   retry re-selects. The `OwnerLedger` faults if both owners tick the same actor in one tick.
+2. **The Java owner is the fallback, not a safety net mid-run.** If a module fails to load or
+   preflight, the Java owner keeps the slot and the `SupportReport` says why. A VM fault *during*
+   a run does not quietly switch back, so bugs surface instead of hiding.
+3. **Same inputs, same outputs.** Where a family has both owners, the Engine 2 host is handed the
+   same random stream the Java class would have used, so the two can be compared tick for tick.
+   That's what the parity harness and the Java-versus-Engine 2 differential tests measure.
+
+The end state is **cutover**: once a family's Engine 2 module matches its Java owner and passes the
+device gates, Engine 2 becomes its default owner. Once every family is across, the legacy Java
+behavior classes are retired, and only the mechanics they called remain.
+
+### A concrete example: scene 30
+
+Scene 30 is the first campaign level (LEVEL 1). It has four scene-program slots, and they show
+the owner model well because **one scene runs with two kinds of owner at the same time**.
+
+| Slot | What it does | Rules |
+|--:|---|---|
+| 0 | the opening story cutscene: scripted animations, actors moved off-screen in batches, a fade out and back in | 273 lines of `.e2` |
+| 1 | further scene logic | 54 lines |
+| 2 | tutorial prompt at the first marker | 1 rule |
+| 3 | tutorial prompt at the second marker | 1 rule |
+
+![Scene 30's intro on a Pixel, with slot 2 owned by Engine 2](../images/supermorse_scene30_engine2_intro.png)
+
+**Slot 2 as rules.** This is the whole program for slot 2, in readable Engine 2 source:
+
+```text
+engine2 1.1;
+profile "superbobgo.scene030";
+system guideClosed: int at 331;
+
+scene CastleIntro resource 30 {
+  program tutorial2 at 2 {
+    rule prompt repeat once
+      when scene.actorPositionCompare(leftActor:1, leftAxis:7, comparison:0,
+                                      rightActor:36, rightAxis:7)
+       and system.guideClosed == 0
+    {
+      scene.guideStep(step:0, count:1);
+    }
+  }
+}
+```
+
+In words: *once, when the hero (actor 1) reaches the x position of marker actor 36, and the
+player hasn't dismissed the guide (system variable 331 is 0), show the first guide step.* Slot 3
+is the same rule against marker 37.
+
+**The same slot under each owner:**
+
+```text
+                         scene 30, slot 2, phase 3 of every tick
+                                        │
+              ┌─────────────────────────┴──────────────────────────┐
+     Java owner (legacy)                                  Engine 2 owner
+SceneProgramHost.tickProgram()                    scene machine visits
+interprets slot 2's program data                  scene-030-guide-2.e2m
+   │                                                 │
+   │ position check in Java                          │ op: actorPositionCompare ─┐
+   │ reads system var 331 in Java                    │ op: system read 331       │ Engine2SceneHost
+   │ calls guide service                             │ op: guideStep             ┘ handlers
+   │                                                 │
+   └──────────────────────────┬──────────────────────┘
+                              ▼
+       same services: actor positions, system variables, guide/dialogue UI
+```
+
+Neither owner draws the guide bubble or tracks the hero's position. Both ask the same services.
+The only thing that changes is *who evaluates the condition and decides to fire*.
+
+**Selection at attempt start.** With Engine 2 enabled for slot 2 only, the `SupportReport` for a
+scene-30 attempt on the phone reads:
+
+```text
+scene-030-slot-2 SELECTED module=6367ee51ea89
+scene-030-slot-3 KEPT_LEGACY_NOT_CONFIGURED (not in the configured set)
+```
+
+So slot 2 is driven by the compiled module (identified by its hash), and slot 3, the identical rule
+one marker later, stays with the Java interpreter in the same attempt. Slots 0 and 1 also stay
+on the Java owner. If the module had failed to load or preflight, slot 2 would have reported
+`KEPT_LEGACY` with the reason and the level would have played exactly as before.
+
+**How we checked it.**
+
+- **Frame order:** `TickPhaseOrderTest` runs scene 30 for 120 ticks and asserts all ten phases
+  run in contract order whichever owner holds the slots.
+- **On the phone:** the scene-30 intro was captured on a Pixel twice, once with slot 2 on Engine 2
+  and once with Engine 2 selection omitted, and showed no visible difference. That's the
+  screenshot above.
+- **Long runs:** scene 30 is part of the 5,000-tick Java-versus-Engine 2 comparisons. It's also
+  where one of the two remaining differences lives: movement diverges at the moment one scene
+  rule replaces another, and the opening transition is not yet an exact match. Until that's fixed,
+  the story slots stay on the Java owner, which is exactly what per-slot ownership is for.
+
+That's the whole model in one level: the frame order is fixed, the mechanics are shared, and
+each slot independently says *who decides*, with the Java owner keeping any slot that
+Engine 2 can't yet prove.
+
 ### Host, capabilities and authority
 
 ```text
