@@ -289,6 +289,74 @@ piece still in Java. They are planned as rules in the hero port tasks.
 That's why moving slot 2 to Engine 2 doesn't change how scene 30 *plays*. It only changes who
 decides when the tutorial prompt appears.
 
+#### How gameplay triggers the slots
+
+Slots never call each other, and there's no "go to slot 2". Every active slot is scanned each tick,
+and a rule fires when its conditions become true. Those conditions read live gameplay state, so
+**gameplay is what drives the scene logic**. It reaches the slots in three ways:
+
+1. **Conditions that read gameplay directly.** Slots 2 and 3 trigger only on the hero's position
+   (`actorPositionCompare` against a marker). The hero gets there through input, physics and
+   collision, not a script. When the player walks far enough, the condition flips and the prompt
+   fires.
+2. **Activation zones.** A scene program is driven by an actor placed in the level. The profile
+   provides activation predicates such as `referencePointInsideOwner` (a designated point,
+   typically the hero, is inside that actor's bounds) and `referencePointInsideOwnerWithInput` (the
+   same, while a particular input is held). Walking into an invisible trigger box, or pressing a
+   button inside it, starts the slot's rules.
+3. **Shared system variables.** Gameplay code and actor rules write numbered system variables, and
+   slots watch them. Scene 30's slot 1 is a small chain built entirely on them:
+
+```text
+rule0  when system[15] == 1  → movement batch (moves the hero, actor 1), wait 25 ticks,
+                               set hero animation, advance system[15]
+rule1  when system[15] == 3  → clear a flag bit on the hero, set system[4] = 1
+rule2  when system[4]  == 1  → show dialogue 0
+```
+
+It also works the other way. A slot can **take over** gameplay: slot 1 moves the hero with a
+movement batch and changes a flag bit on it. While a movement batch, camera pan or transition is
+running, that effect owns the world update and the slot's action list waits until it finishes,
+which is how a cutscene takes over normal play. A slot can also switch to another scene. So the
+loop is: gameplay changes state, a slot's condition becomes true, the slot's actions may take
+control for a while, and then control returns to the player.
+
+#### Is Engine 2 a background thread?
+
+No. It can look like one, because a slot can `wait ticks(80)` in the middle of a cutscene while the
+game keeps running. But there is **one game thread and one frame pipeline**, and Engine 2 runs
+*inside* it, synchronously, at fixed points:
+
+```text
+game thread, one tick:
+  phase 1   hero body, mechanisms                      Java
+  phase 2a  instance loop ── actor visit ──► Engine 2 actor machine (returns before the next actor)
+  phase 2e  contacts                                   Java
+  phase 3   scene programs ── each slot ──► Engine 2 scene machine (resume or scan, then return)
+  phase 4   camera                                     Java
+  ── render ──
+```
+
+What makes waits possible is the **continuation**, not a thread. When a scene rule hits
+`wait ticks(n)` or a long action like a fade, the machine saves where it stopped (slot, rule, next
+action, due tick) and *returns*. On a later tick, phase 3 sees the continuation is due and resumes
+from that point. It's the same idea as coroutines or `async`/`await` on a single-threaded event
+loop: the code reads as if it blocks, but it only ever runs in short steps inside the tick.
+
+Things that genuinely happen on other threads, such as a dialogue closed by a UI tap or audio
+finishing, **never touch rule state directly**. They only post an event into a lock-free inbox
+carrying the attempt number and a continuation token. The next tick drains that inbox in phase 3,
+and a stale token (from a previous attempt, or for an owner that's gone) is rejected.
+
+This is deliberate:
+
+- **Determinism.** The same inputs produce the same ticks, which is what makes 5,000- and
+  10,000-tick Java-versus-Engine 2 comparisons possible at all.
+- **No locks.** Rules and mechanics never run at the same time, so they can share the actor state
+  store and system variables without synchronization. Each field still has a single writer.
+- **Bounded cost.** Each visit has a budget for rule visits and action dispatches. A runaway rule
+  becomes an `E2_BUDGET` fault, not a frame that never ends.
+
 ![Scene 30's intro on a Pixel, with slot 2 owned by Engine 2](../images/supermorse_scene30_engine2_intro.png)
 
 **Slot 2 as rules.** This is the whole program for slot 2, in readable Engine 2 source:
