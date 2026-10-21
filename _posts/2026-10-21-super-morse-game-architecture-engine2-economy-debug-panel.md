@@ -357,6 +357,51 @@ This is deliberate:
 - **Bounded cost.** Each visit has a budget for rule visits and action dispatches. A runaway rule
   becomes an `E2_BUDGET` fault, not a frame that never ends.
 
+#### What about frame rate?
+
+If everything runs on the game thread, what happens when the rules get expensive? Does Engine 2
+skip rules, or does the game lag?
+
+It **never skips a rule** to save time. Every rule that's due runs completely, every tick, so an
+overloaded tick would show up as a late frame (lag), not as missing behavior. The design keeps
+that from happening in four ways.
+
+**1. A runaway rule faults instead of hanging the frame.** Each visit to an actor or slot is
+capped at **4,096 rule visits and 16,384 action dispatches**. Going over raises `E2_BUDGET`, which
+stops that one program and records where. Running out of budget is *a fault, never a quiet
+"condition false"*. The cap exists to catch bugs such as an infinite jump loop. It isn't a
+performance throttle.
+
+**2. Scene work has a known worst case.** Scene programs can't jump backwards, and at most one rule
+match starts per slot per tick, so the maximum work per program is fixed at compile time. Across
+all **701 scene modules**, the worst needs **17 rule visits and 163 calls**, far below 25% of the
+caps. Long sequences don't pile up in one tick either: `wait ticks(n)` spreads a cutscene
+across many ticks.
+
+**3. The real cost is how many actors there are, not how complex the rules are.** One level can
+hold thousands of blocks, about 13,700 block instances across all levels. The JVM benchmark
+(medians over five separate processes, with a no-op host) made that clear:
+
+| Path | Cost per 1,000 blocks per tick |
+|---|---|
+| Java `BlockDispenser.tick()` | 4.15 µs |
+| Engine 2, visiting every block | ~866 µs (projected **11.8 ms** for every block) |
+| Engine 2, skipping dormant blocks | **1.81 µs** |
+
+At 60 Hz a frame has 16.7 ms, so visiting every block would eat most of it. The answer is to
+**skip actors that can't act**, not rules. `Engine2ActorVisitScheduler` keeps a stable-order
+roster: a block with no pending event and nothing to do isn't visited at all, and it wakes when
+something happens to it, such as the hero bumping it. The skip is deterministic, and it mirrors the
+frozen active roster the Java version already uses. It's recorded as a proposed decision.
+
+**4. Loading cost is small too.** Loading and checking the largest scene's modules (16.8 KB of
+binary) takes a median of **7.4 ms** on the JVM. That happens once per level load, not per tick.
+
+**Still open:** device numbers. The target is Engine 2 costing no more than 10% above Java on the
+heaviest scene, with no extra dropped frames. Frame time and memory still need to be measured
+on the test phones. A CI guard already fails the build if module count or total module bytes grow
+past their recorded limits.
+
 ![Scene 30's intro on a Pixel, with slot 2 owned by Engine 2](../images/supermorse_scene30_engine2_intro.png)
 
 **Slot 2 as rules.** This is the whole program for slot 2, in readable Engine 2 source:
