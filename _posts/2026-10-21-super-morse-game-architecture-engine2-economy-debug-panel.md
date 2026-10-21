@@ -184,7 +184,7 @@ the owner model well because **one scene runs with two kinds of owner at the sam
 
 ```text
 engine2 1.1;
-profile "superbobgo.scene030";
+profile "supermorsego.scene030";
 system guideClosed: int at 331;
 
 scene CastleIntro resource 30 {
