@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "Super Morse: Game Architecture, Engine 2 Integration, Debug Tools and the Game Economy"
+title: "Super Morse: Game Architecture, Engine 2 Integration and Debug Tools"
 date: 2026-10-21
 permalink: /posts/2026/10/super-morse-game-architecture-engine2-economy-debug-panel/
 categories:
@@ -13,19 +13,19 @@ tags:
   - game-development
   - software-architecture
   - rule-engine
-  - game-economy
   - debugging
   - testing
   - side-project
-excerpt: "How Super Morse is put together as a product: the frame pipeline, the Engine 2 host and authority selection, an in-app rule inspector and debug panel, a logged wallet economy with ranks, chests and a Star Road, and the test and device gates that keep it honest."
+excerpt: "How Super Morse is put together: the frame pipeline, Java and Engine 2 owners, scene program slots worked through on scene 30, authority selection, an in-app rule inspector and debug panel, and the test and device gates that keep it honest."
 ---
 
 Post #43 in the [Super Morse](/posts/2026/09/ai-assisted-platformer-reverse-engineering-super-morse/)
 series. The [last post](/posts/2026/10/engine2-rule-engine-introduction-guidebee-game-engine/)
 introduced Engine 2, the rule language and VM. This one is about the *game* that runs it: how a
 frame is put together, how Engine 2 is plugged into a real Android game without a big-bang rewrite,
-the debug tooling we built so we can see what the rules are doing on a phone, and the game economy
-that turns a level runner into something you keep coming back to.
+and the debug tooling we built so we can see what the rules are doing on a phone. The proposed
+game economy has its own post:
+[A Proposed Game Economy and Its Reference Implementation](/posts/2026/10/super-morse-game-economy-design/).
 
 ## TL;DR
 
@@ -37,10 +37,8 @@ that turns a level runner into something you keep coming back to.
   single switch rolls everything back.
 - **We can see the rules running on a phone.** A debug panel and an in-app **rule inspector** pause
   the game, step one tick, show which rules matched and why, and export the trace as JSONL.
-- **The economy is a service, not a scattering of `gold += n`.** One wallet logs every grant and
-  spend. On top of it sit level boosters, a Treasure hub (daily calendar, wheels, chests), a free Star
-  Road, military ranks with a Quartermaster, and a Treasure Challenge. Every random draw has an
-  odds panel.
+- **Scene logic is split into program slots.** Each slot is an independent little program with its
+  own state, so a level can move to Engine 2 one slot at a time. Scene 30 is the worked example.
 - **Progress:** 48 product tasks: 21 done, 19 partial, 8 open (about 64% weighted). The rules
   foundation is 100% done; the large actor and scene waves are next.
 
@@ -168,15 +166,88 @@ behavior classes are retired, and only the mechanics they called remain.
 
 ### A concrete example: scene 30
 
-Scene 30 is the first campaign level (LEVEL 1). It has four scene-program slots, and they show
-the owner model well because **one scene runs with two kinds of owner at the same time**.
+Scene 30 is the first campaign level (LEVEL 1). It shows the owner model well because **one
+scene runs with two kinds of owner at the same time**, and the unit that makes that possible is
+the **program slot**.
 
-| Slot | What it does | Rules |
-|--:|---|---|
-| 0 | the opening story cutscene: scripted animations, actors moved off-screen in batches, a fade out and back in | 273 lines of `.e2` |
-| 1 | further scene logic | 54 lines |
-| 2 | tutorial prompt at the first marker | 1 rule |
-| 3 | tutorial prompt at the second marker | 1 rule |
+#### What a program slot is
+
+A scene's behavior isn't one big script. It's a set of **independent programs**, each tagged
+with a number: its *program slot*. In Engine 2 source it's the `at N` in `program name at N { ... }`.
+A scene module can hold up to 65,535 of them. An actor module, by contrast, always has exactly one
+program, at the reserved slot 65535.
+
+Think of a slot as a **channel number**, not a memory address. Each slot is its own small state
+machine, and the runtime keeps this state **per slot**:
+
+| Per-slot state | What it holds | Lifetime |
+|---|---|---|
+| Rule status | for each rule: not matched, matched, or skipped by an `else` | reset at every attempt |
+| Repeat counters | how many more times each rule may fire (`repeat once` = 1, `forever` = -1) | reset at every attempt |
+| Cursor | where the next scan of the rule list starts | the attempt |
+| Continuation | a paused action list: which rule, which action next, and the tick it's due (set by `wait ticks(n)` or a long action like a fade or dialogue) | until it finishes, or the attempt ends |
+| Fault | a latched error; a faulted slot stops until the next attempt | the attempt |
+
+**How one slot runs in a tick** (inside phase 3 of the frame):
+
+```text
+tick(slot):
+    if a continuation is pending:            // a wait or long action is in progress
+        resume it if it's due; then stop     // never start a second scan this tick
+    scan rules from the cursor:
+        skip if an else-branch is not eligible
+        skip if the repeat counter is 0      // "repeat once" already used
+        check the activation predicate
+        check the conditions                 // the `when` part
+        first rule that passes: decrement repeat, start its actions, stop scanning
+    at most ONE rule match starts per slot per tick
+```
+
+**Slots don't talk to each other directly.** Two slots never share state through their slot
+numbers. They share it through **variable slots**, the numbered system integers the game owns
+(the word "slot" really does mean two different things here). In scene 30:
+
+```text
+scene 30 module
+ ├─ program slot 0  (director)          reads/writes  system[0] phase, system[6], system[15], system[331], system[460]
+ ├─ program slot 1  (finish)            reads/writes  system[15] ...
+ ├─ program slot 2  (tutorial line 1)   reads         hero X, system[331]
+ └─ program slot 3  (tutorial line 2)   reads         hero X, system[331]
+        ▲ program slots: which program runs      ▲ variable slots: the shared integers they use
+```
+
+The director in slot 0 advances `system[0]` (the phase) as the story plays out. Other slots can
+react to that value without knowing slot 0 exists.
+
+**Who runs a slot.** A slot doesn't run on its own. The level's placement data decides which
+in-level actor drives which program slot, and the slot is scanned when that actor is eligible.
+Separately, the **authority table** decides *which implementation* runs it: the Java scene
+interpreter or a compiled Engine 2 module. That second choice is keyed by `(scene, slot)`, for
+example `30:2`.
+
+**Why slots are the right unit of migration.**
+
+- **Small.** Many slots are a single rule (the tutorial prompts are). A slot can be ported,
+  compared and switched without touching the rest of the scene.
+- **Isolated.** Its status, repeats, cursor and continuation belong to it, so a slot can move to
+  Engine 2 while its neighbors stay on Java in the same attempt.
+- **Contained failure.** A fault latches on that slot only, until the next attempt.
+- **Clear seams.** Because slots only meet through system variables and shared services, both
+  owners read and write the same integers through the same host.
+
+There's one place where slots *do* interact, and it's the hardest to port: the game keeps **one
+current scene action list** shared across owners, and a later matching owner can **replace** a
+blocked one, losing the replaced owner's continuation. Engine 2 reproduces this as an explicit
+scene-manager policy (with a `replace` trace event) rather than hiding it inside each slot.
+
+#### Scene 30's four slots
+
+| Slot | Role | What it does | Size |
+|--:|---|---|---|
+| 0 | director | the opening story cutscene: scripted animations, actors moved off-screen in batches, a fade out and back in, and the story phase in `system[0]` | 273 lines of `.e2` |
+| 1 | finish | end-of-level handling | 54 lines |
+| 2 | tutorial line 1 | guide prompt at the first marker | 1 rule |
+| 3 | tutorial line 2 | guide prompt at the second marker | 1 rule |
 
 ![Scene 30's intro on a Pixel, with slot 2 owned by Engine 2](../images/supermorse_scene30_engine2_intro.png)
 
@@ -200,9 +271,15 @@ scene CastleIntro resource 30 {
 }
 ```
 
-In words: *once, when the hero (actor 1) reaches the x position of marker actor 36, and the
-player hasn't dismissed the guide (system variable 331 is 0), show the first guide step.* Slot 3
-is the same rule against marker 37.
+In words: *once (`repeat once`), when the hero (actor 1) reaches the x position of marker actor 36,
+and shared system variable 331 is still 0, show the first guide step.* Slot 3 is the same rule
+against marker 37.
+
+Traced through the slot model: each tick, slot 2 scans its single rule. While the hero is left of
+the marker, the condition is false and nothing happens. On the first tick the hero reaches it, the
+rule matches, its repeat counter drops from 1 to 0, and `guideStep` starts. From then on the repeat
+gate skips the rule without evaluating anything. A retry starts a new attempt, which resets the
+counter, so the prompt can show again.
 
 **The same slot under each owner:**
 
@@ -248,8 +325,9 @@ on the Java owner. If the module had failed to load or preflight, slot 2 would h
   screenshot above.
 - **Long runs:** scene 30 is part of the 5,000-tick Java-versus-Engine 2 comparisons. It's also
   where one of the two remaining differences lives: movement diverges at the moment one scene
-  rule replaces another, and the opening transition is not yet an exact match. Until that's fixed,
-  the story slots stay on the Java owner, which is exactly what per-slot ownership is for.
+  owner replaces another (the shared-action-list case above), and the opening transition is not
+  yet an exact match. Until that's fixed, the director slot stays on the Java owner, which is
+  exactly what per-slot ownership is for.
 
 That's the whole model in one level: the frame order is fixed, the mechanics are shared, and
 each slot independently says *who decides*, with the Java owner keeping any slot that
@@ -323,8 +401,8 @@ attempt deaths, coins, keys, blocks exhausted, hero physics state and session st
 ![Debug panel over scene 45: status strip, hop controls and scene navigation](../images/supermorse_debug_overlay.png)
 
 Every preview run is labelled `PREVIEW, NOT CERTIFIED`, and debug runs (god mode, scene tests,
-previews) **never pay economy rewards**. This was a deliberate rule: a debug tool that can mint
-coins will eventually corrupt somebody's save.
+previews) **never pay rewards** into the save. This was a deliberate rule: a debug tool that can
+mint coins will eventually corrupt somebody's save.
 
 ### The rule inspector
 
@@ -357,96 +435,7 @@ the slice scene, select the fish, and read which rule launched it and which rule
 exported trace shows rule 16's collision and state predicates evaluating true at tick 2425 and its
 defeat actions firing.
 
-## 5. The game economy
-
-The economy was the biggest product addition this month. It's built in two layers: a boring,
-well-tested foundation and the screens on top.
-
-### Foundation: one wallet, one log
-
-The old save cleared everything on a schema change. The first job was a **real migration** that
-keeps gold, unlocks and progress, then one service through which **every** balance changes:
-
-```java
-// EconomyService: the only way a balance changes
-public synchronized int grant(String resource, int amount, String reason) { ... }
-public synchronized boolean spend(String resource, int amount, String reason) { ... }
-```
-
-- The wallet holds coins, keys, hero pieces per hero, a goal hero, insignia and supply, stars,
-  ownership (heroes, outfits, mounts, weapon mastery), jackpot and chest counters, daily state and
-  an event log.
-- Rewards are **staged during the attempt** and only applied on victory, retry or abandon.
-  `LevelRewards` applies first-clear, replay, star, perfect and failure-retention rules.
-- Tests cover migration, a clock moved backwards, and two devices spending the same coins.
-
-One device check paid for itself immediately: a coin warp spent 500 coins while the level stayed
-locked, because the unlock write was never flushed. Now the unlock and the debit **share one
-preferences flush**, and every economy action commits in a single flush.
-
-### Hero roster and weapons
-
-Ten hero skins map to rigs, signature weapons or skills, tiers, coin prices and piece counts in
-`hero-roster.json`. A new save starts with the starter hero and the fireball. Coins buy **weapon
-mastery levels**, which add starting ammo, not new weapons. The coin-magnet hero attracts coins
-without needing a mount.
-
-### Level entry: fixed-price boosters
-
-![Level entry: Shield, Heart, Magnet and Guardian boosters at fixed prices](../images/supermorse_level_entry_boosters.png)
-
-Before a level you can buy a Shield, an extra Heart, a Magnet or a Guardian boost, or a Permanent
-Guardian. Prices are fixed and shown, and **retries keep unused boosters**.
-
-### Treasure hub, Star Road and the Challenge
-
-![Treasure hub: Daily Calendar, Lucky Wheel and three chest tiers, each with an odds panel](../images/supermorse_treasure_hub.png)
-
-The Treasure hub has a seven-day Daily Calendar with a Daily Spin, a Lucky Wheel (one key per spin,
-jackpot counter), and wooden, silver and gold chests. Every card has a **?** that opens its odds and
-guarantees. The footer says it plainly: *earned from play only*.
-
-![Star Road: a free reward every 15 stars](../images/supermorse_star_road.png)
-
-The **Star Road** is the deliberately non-random track: a free reward every 15 stars (a hero,
-coins, keys, goal-hero pieces, a gold chest). Claims go in order, in one flush.
-
-![Treasure Challenge after a first boss clear: one free pick from three face-down cards](../images/supermorse_treasure_challenge.png)
-
-A boss's first clear pays a Gold Star and one **Treasure Challenge**: three face-down cards, one of
-each kind (coins scaled by worlds cleared, goal-hero pieces, or keys), in a shuffled order. You get
-one free pick, then the other two are revealed. There is no paid re-pick.
-
-### Ranks and the Quartermaster
-
-![Ranks and Quartermaster: Army, Navy and Air Force branches, Gold Stars, trades and a free daily transfer](../images/supermorse_ranks_quartermaster.png)
-
-Defeating enemies and breaking bricks can drop **insignia**. The branch comes from the actor family:
-walkers, frogs, plants and bricks are Army; pufferfish and squid are Navy; flying fish are Air
-Force. Each drop adds rank progress (never spent; *ranks never fall*) and supply, which you spend
-at the Quartermaster on coins, ammo, goal-hero pieces or an outfit.
-
-The drop rule is a pity timer: 10 in 150, +1 per miss, reset on a drop, 4% of drops are Gold
-Stars. It's capped at 4 drops per attempt in an uncleared scene and 1 per scene per day once
-cleared. A 3,000-roll test checks the average lands at roughly one drop per 9 to 10 defeats.
-
-The in-level side is an `InsigniaObserver` that **reads** the world after each tick and reports
-enemies that went from live to defeated, plus newly broken bricks. It never writes gameplay state
-and never touches the rule random streams, so the economy can't change how a level plays.
-Script removals (an actor set dead with no stomp, knockout or capture) don't count.
-
-### Economy principles
-
-```text
-✓ every balance change goes through EconomyService and is logged
-✓ every multi-step action commits in one flush
-✓ every random draw has an odds panel
-✓ no paid product contains a random item
-✓ debug, preview and scene-test runs never pay rewards
-✓ observers read the world; they never write it
-```
-
-## 6. Levels, campaign and certification
+## 5. Levels, campaign and certification
 
 New levels come in as **authored scene packages**. A conversion tool produces a package plus a
 record of every adaptation decision, and `AuthoredScenePackage` loads it through the same
@@ -461,7 +450,7 @@ until every gate (completion, retry, persistence and Continue, death, visuals) i
 campaign certification is done: the hero picks up a mount, rides it, and finishes the level on a
 Pixel.
 
-## 7. How we verify
+## 6. How we verify
 
 Each task has written exit criteria, and "done" means tests green **and** a device check where the
 task touches the player:
@@ -470,8 +459,8 @@ task touches the player:
   forced-Engine 2 authority modes.
 - **Differential tests:** Java owner versus Engine 2 module, tick for tick, from 2,000 to 10,000 ticks.
 - **Device checks on a Pixel**, hash-bound to the APK, with screenshots kept as evidence.
-- **Save safety:** device checks on the economy run on a scratch save, then the owner's real
-  739-byte profile is restored and verified by SHA-256.
+- **Save safety:** device checks that would change progress run on a scratch save, then the
+  owner's real 739-byte profile is restored and verified by SHA-256.
 
 ## Impact and Next Steps
 
@@ -481,28 +470,27 @@ task touches the player:
   rollback.
 - When a rule misbehaves on a phone, we can pause, step and read *why*, then replay the exported
   trace on the JVM.
-- The economy is auditable: one wallet, one log, atomic commits, visible odds.
+- Scenes move to Engine 2 one program slot at a time, with mixed ownership inside a single level.
 
 **What's next:**
 
 1. **Scene waves 2 and 3**: scenes 46 to 310 and the non-campaign scenes.
 2. **Actor waves C to E**: mechanisms, enemies and hazards, projectiles and bosses.
 3. **Hero port**: locomotion, weapons, forms, mounts, transitions, death and revival as rules.
-4. **Store and billing**: fixed-price products, the collection book, telemetry by reason.
-5. **Performance and memory budgets**, then cutover with Engine 2 as the default owner.
+4. **Performance and memory budgets**, then cutover with Engine 2 as the default owner.
 
 ## Conclusion
 
 The theme of this stretch was making the game *observable and accountable*. The frame order is
 written down and tested, Engine 2 ownership is an explicit, reported decision per slot, the rule
-inspector shows what the VM did on a real device, and every coin has a reason in the log. With
-those in place, the rest of the port and the rest of the economy can be added one wave at a time
-without guessing.
+inspector shows what the VM did on a real device. With those in place, the rest of the port can
+be added one wave, and one slot, at a time without guessing.
 
 ---
 
 ## Related Posts
 
+- [Super Morse: A Proposed Game Economy and Its Reference Implementation](/posts/2026/10/super-morse-game-economy-design/): the economy, split out into its own post
 - [Introducing Engine 2: A Rule Engine for Game Behavior](/posts/2026/10/engine2-rule-engine-introduction-guidebee-game-engine/): the language and VM this post integrates
 - [From One Game to a Toolkit: Extracting Reusable Platformer Architecture](/posts/2026/09/platformer-engine-architecture-guidebee-game-engine/): the engine boundary
 - [Level Design at Scale: Atlases and Tile Catalogs](/posts/2026/09/level-design-at-scale-atlases-tile-catalogs/): the level pipeline
@@ -515,4 +503,4 @@ without guessing.
 ---
 
 *This is post #43 in the Super Morse series. Write the frame order down, make every owner explicit,
-log every coin, and give yourself a way to watch the rules run on a real phone.*
+port one slot at a time, and give yourself a way to watch the rules run on a real phone.*
