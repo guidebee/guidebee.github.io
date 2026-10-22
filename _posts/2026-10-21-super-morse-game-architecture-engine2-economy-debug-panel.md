@@ -345,39 +345,162 @@ The end state is **cutover**: once a family's Engine 2 module matches its Java v
 device gates, Engine 2 becomes its default authority. Once every family is across, the legacy Java
 behavior classes are retired, and only the mechanics they called remain.
 
-### 4.2 Hosts, capabilities and selection
+### 4.2 Hosts and capabilities
 
-```text
-                attempt start
-                      │
-                      ▼
-        ┌───────────────────────────┐
-        │  Engine2Authority.select  │
-        └─────────────┬─────────────┘
-       for each registered actor resource / (scene, slot):
-                      │
-      load module ──► preflight against ──► install
-          │           capability registry       │
-          │                 │                    │
-      failed?           missing cap?          failed?
-          └────────┬────────┴──────────┬─────────┘
-                   ▼                   ▼
-          Java keeps it        SupportReport entry
-                               (logcat -s ENGINE2)
-```
-
-- **Capability registry.** `Engine2Capabilities` starts empty. A capability only exists when
-  *every* operation in it has a working handler. Having a row in the profile doesn't count.
 - **Hosts.** `Engine2ActorHost` and `Engine2SceneHost` dispatch by operation id through a
   registry of small handler objects rather than one giant `switch`. Unknown operations fault with
   `E2_HOST_FAULT`. Scene handlers call the *same* service methods the Java scene interpreter
   already used, so behavior is shared, not copied.
-- **Authority table.** Actors are a set of resource ids; scenes are a set of `(sceneId, slot)` pairs.
-  Defaults come from the port ledger and can be overridden in debug builds with an intent extra,
-  for example `actors=61,190 scenes=30:2`, without rebuilding the APK.
-- **Rollback.** A single boolean forces every selection back to Java at the next attempt start.
+- **Capability registry.** `Engine2Capabilities` is *computed from the hosts*: a capability exists
+  only when **every** operation in it has a working handler. Having a row in the profile doesn't
+  count. As handlers land, capabilities appear, and modules that need them start passing preflight.
+  Nobody edits the registry by hand.
 
-### 4.3 The attempt lifecycle
+### 4.3 The authority table: how it's designed
+
+"Authority table" is a convenient name, but it isn't one literal table. `Engine2Authority` combines
+four inputs and makes one decision per candidate, once, at the start of each attempt:
+
+```text
+ Registrations (code, shipped)          Config (this run)
+ what CAN run on Engine 2               what MAY run on Engine 2
+ ─ actor-190, actor-061, actor-199      ─ actors = {…} or "all registered"
+ ─ scene-030-slot-2, scene-030-slot-3   ─ scenes = {"30:2", …} or "all registered"
+ ─ wave-1 bundles, scenes 30 to 45      ─ wave1  = {30, 31, …} (opt-in)
+                                        ─ rollback = true | false
+            │                                     │
+            └──────────────┬──────────────────────┘
+                           ▼
+            Engine2Authority.select(context)  ◄── Capability registry (from the hosts)
+                           │                  ◄── Resource catalog (what the game ships)
+                           ▼
+              SupportReport: one line per candidate, with a status and a reason
+```
+
+#### Registrations: what *can* run on Engine 2
+
+A **registration** describes one selectable module. It's code, shipped with the app
+(`PilotRegistrations`), and each one carries:
+
+| Field | Meaning | Example |
+|---|---|---|
+| `name` | stable id, used in reports and dependencies | `actor-061`, `scene-030-slot-2` |
+| `family`, `resource`, `slot` | what it replaces; actors always use slot 65535 | scene 30, slot 2 |
+| `profile` | the contract the module must match | product profile, or a pilot profile |
+| `loader` | where the `.e2m` comes from | packaged app assets (tests load files) |
+| `installer` | the code that actually switches authority | `world.enableActor61Engine2(loaded)` |
+| `applies` | does this candidate apply to *this* attempt at all? | "scene is 65", "this level has fish spawners" |
+| `capabilities` *(optional)* | a module's own narrower capability set | the pilot profiles |
+| `dependsOn` *(optional)* | only select if another registration was selected in the same pass | slot 3 depends on slot 2 |
+
+There's also a **bundle** form: all the slots of one scene, selected **all or nothing**.
+
+What's registered today:
+
+| Registration | Applies when | Profile |
+|---|---|---|
+| `actor-190` (defeat puff) | every attempt | product |
+| `actor-061` (contact effect) | scene 65 | product |
+| `actor-199` (flying fish) | the level has fish spawners | product |
+| `scene-030-slot-2` | scene 30, guide service available | scene 30 pilot |
+| `scene-030-slot-3` | same, **and** slot 2 was selected | scene 30 pilot |
+| wave-1 bundles, scenes 30 to 45 | that scene, only when opted in | product |
+
+A wave-1 bundle for scene 30 covers all four slots and replaces the two single-slot guide
+registrations. The other wave-1 scenes cover slots 0 and 1.
+
+#### Config: what *may* run this time
+
+The **config** narrows the registrations for a run. It has four parts:
+
+```text
+actors=61,190        only these actor families (omit = every registered actor)
+scenes=30:2,30:3     only these (scene:slot) pairs (omit = every registered slot)
+wave1=30,31          opt these whole scenes into bundles (scenes 30 to 45 only)
+rollback=true        keep everything on Java
+```
+
+In a normal run the config is the default: **every registered module is allowed**, and wave-1
+bundles are off. In debug builds a developer can pass a config string as an intent extra to try a
+combination on a phone without rebuilding the APK. A malformed string is logged and ignored, and
+the defaults apply. Release builds don't read the extra at all.
+
+#### `select`: one decision per candidate, in order
+
+For each registration, `select` walks the same checks in a fixed order and stops at the first one
+that fails. Every outcome is written to the `SupportReport`:
+
+| # | Check | If it fails, status is |
+|--:|---|---|
+| 1 | `applies` to this attempt? | *(skipped, no entry)* |
+| 2 | rollback off? | `KEPT_LEGACY_ROLLBACK` |
+| 3 | permitted by the config? | `KEPT_LEGACY_NOT_CONFIGURED` |
+| 4 | `dependsOn` selected earlier in this pass? | `KEPT_LEGACY_NOT_CONFIGURED` (names the dependency) |
+| 5 | still at tick 0 of the attempt? | `KEPT_LEGACY_LATE` ("a retry selects at its start") |
+| 6 | module loads? | `KEPT_LEGACY_LOAD_FAILED` |
+| 7 | preflight: profile matches, every capability present, every resource in the catalog | `KEPT_LEGACY_PREFLIGHT_FAILED`, listing what's missing |
+| 8 | installer succeeds? | `KEPT_LEGACY_INSTALL_FAILED` |
+| ✓ | all passed | `SELECTED`, with the module's SHA-256 and the profile digest |
+
+One more status can appear later: `FAULTED_NO_FALLBACK`, when a selected module faults during the
+attempt. As the name says, Java does not take over mid-attempt.
+
+Four design choices sit behind this:
+
+- **Fail closed to Java.** Every failure path keeps the Java authority, and `select` never throws
+  for a module problem. The worst a bad module can do at load time is *not run*.
+- **Nothing changes until the last step.** Loading and preflight have no side effects. Only the
+  installer switches authority, for example `world.enableEffect190Engine2(loaded)`, or, for a scene
+  slot, `programHost.replaceProgramAtAttemptStart(2, …)`, which swaps slot 2's program before the
+  first tick.
+- **Bundles are atomic.** For a wave-1 scene, every slot is loaded and preflighted first. If any one
+  fails, **every** slot of that scene is reported as kept on Java, with the failing slot named. This
+  matters because a scene's slots coordinate through shared system variables and one shared action
+  list, so half a scene on each side is a combination nobody has tested.
+- **Order is part of the design.** Registrations are evaluated in registration order, which is how
+  `dependsOn` works: slot 3 can only be selected if slot 2 already was, in the same pass.
+
+#### How it's used
+
+```text
+GameScreen builds an attempt (first play, retry, or a pipe into a sub-stage)
+  │
+  ├─ Context(sceneId, ticksRun = 0, attempt) + services the installers need
+  │     (scene 30 adds the guide service)
+  ├─ report = engine2Authority.select(context)
+  ├─ debug builds: Log.i("ENGINE2", report.dump())    → adb logcat -s ENGINE2
+  └─ the attempt starts ticking; the choices are now fixed
+
+every tick:  OwnerLedger: each tick site claims each actor for LEGACY or ENGINE2;
+             both in one tick throws, and the ledger is cheap enough to stay on in production
+on retry:    a new attempt and a new select, so a changed config or a fixed module takes effect
+```
+
+Tests use the same class rather than a test-only shortcut. For example, the wave-1 test helper
+builds an authority with `wave1=<scene>` to run a whole scene on Engine 2, so production and
+tests go through the **same** selection path.
+
+#### Reading a report
+
+On the Pixel, with the config `scenes=30:2`, the scene 30 lines of the report read:
+
+```text
+scene-030-slot-2 SELECTED module=6367ee51ea89
+scene-030-slot-3 KEPT_LEGACY_NOT_CONFIGURED (not in the configured set)
+```
+
+Slot 2 passed every check, and its module hash is recorded. Slot 3 stopped at check 3, because
+the config named only `30:2`. Had the config allowed slot 3 but slot 2 failed, slot 3 would stop at
+check 4 instead, because it depends on slot 2. Candidates whose `applies` check is false, such as
+`actor-061` outside scene 65, don't appear at all. With `wave1=30`, the same attempt would instead list all four
+scene 30 slots together: all `SELECTED` from one bundle, or all kept on Java with the reason.
+
+**From pilots to cutover.** Today the registrations are a short, hand-curated list, and the larger
+wave-1 bundles are opt-in. Cutover is the same mechanism scaled up: each family that passes its
+parity and device gates gets a registration that is selected by default, until the Java authority
+has nothing left to own.
+
+### 4.4 The attempt lifecycle
 
 Selection, slot state, waits, faults and retry all hang off the attempt. In one timeline:
 
@@ -399,7 +522,7 @@ ATTEMPT END: victory, death, retry or quit
 RETRY = a brand-new attempt: select again, reset again, stale events from the old one rejected
 ```
 
-### 4.4 When Java and Engine 2 meet: a hero and a fish
+### 4.5 When Java and Engine 2 meet: a hero and a fish
 
 Mixed authority is the normal state during migration, so the obvious question is what happens when
 an Engine 2 actor and a Java actor interact. The flying fish is a good example. Its clones run on
@@ -424,7 +547,7 @@ contact pass, at fixed phases. That's also why the rule inspector (section 6) ca
 defeat: the exported trace shows rule 16's collision and state predicates evaluating true and its
 defeat actions firing.
 
-### 4.5 Failure modes, and what the player sees
+### 4.6 Failure modes, and what the player sees
 
 | Failure | Where it's caught | What happens | Player sees |
 |---|---|---|---|
@@ -441,7 +564,7 @@ deliberately leaves room for a **containment policy** declared by the profile (f
 the visit and continue the frame), but none is defined yet. Choosing one is part of the cutover
 work.
 
-### 4.6 Source of truth and the build pipeline
+### 4.7 Source of truth and the build pipeline
 
 Every Engine 2 module can be rebuilt from what is in the repository:
 
@@ -474,7 +597,7 @@ One detail for careful readers: the scene 30 example below is written against a 
 generated at scale, including the slot 1 rules quoted later, uses the full **product profile**
 (`supermorsego.product`, language 1.2).
 
-### 4.7 Where it stands
+### 4.8 Where it stands
 
 Engine 2 runs real content today, not just demos:
 
@@ -767,7 +890,7 @@ Because the export uses the same schema as the parity harness, a trace captured 
 be fed straight into the comparers. The exit check for this task was concrete: on a Pixel, pause
 the slice scene, select the fish, and read which rule launched it and which rule killed it. The
 exported trace shows rule 16's collision and state predicates evaluating true at tick 2425 and its
-defeat actions firing. That's the hero-and-fish interaction from section 4.4, seen from the
+defeat actions firing. That's the hero-and-fish interaction from section 4.5, seen from the
 inside.
 
 ## 7. Levels, campaign and certification
