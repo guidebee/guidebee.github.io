@@ -302,6 +302,6 @@ And Harry — welcome to the University of Melbourne. The best is yet to come.
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #25 in the Solana Trading System development series. A comprehensive gRPC quote service validation confirms production readiness — zero critical deviations, 100% oracle coverage, and 99.9% arbitrage match rate. Written on Chinese New Year 2026, with a proud father's best wishes to Harry starting his journey at the University of Melbourne.*

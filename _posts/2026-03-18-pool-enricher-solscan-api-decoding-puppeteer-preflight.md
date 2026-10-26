@@ -470,6 +470,6 @@ The AlternatingEnricher ensures both data paths are exercised continuously so ne
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #31 in the Solana Trading System development series. Three Puppeteer GET-path bugs, a per-response XOR decoder for Solscan's binary API format, a preflight URL pattern for cross-origin session sharing, and an AlternatingEnricher that keeps both data sources continuously validated — fixing weeks of silent pool enrichment failures.*

@@ -115,6 +115,6 @@ And hello, Melbourne. Let's see what you've got.
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #33 in the Solana Trading System development series — though today's post has nothing to do with trading systems, and everything to do with what makes any of it worth building. First day in Melbourne. New chapter. Grateful for all of it.*

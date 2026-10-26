@@ -121,6 +121,6 @@ Every winter from now on, if I am still lucky enough to eat water chestnuts, I w
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #34 in the Solana Trading System development series. Today it has nothing to do with trading systems, and everything to do with the people who make the rest of our lives possible.*

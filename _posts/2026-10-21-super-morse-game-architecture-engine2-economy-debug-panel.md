@@ -960,7 +960,7 @@ can be added one wave, and one slot, at a time without guessing.
 ## Connect
 
 - **GitHub**: [guidebee](https://github.com/guidebee)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 ---
 

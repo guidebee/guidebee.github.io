@@ -230,6 +230,6 @@ The real test is whether the extra token pairs justify their quota. The data wil
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #30 in the Solana Trading System development series. Data from 373,000+ arb events drove a token configuration overhaul: 9 non-contributing LSTs disabled, 5 high-signal LSTs retained, and 6 extra token pairs (BONK, WIF, JUP, RAY, ORCA, PYTH) added for evaluation. Follow-up results coming in a couple of days.*

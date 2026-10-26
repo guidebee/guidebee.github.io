@@ -468,6 +468,6 @@ Happy Australia Day to everyone! I'll be spending quality time with family in Ch
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #24 in the Solana Trading System development series. The Scanner Service brings the HFT pipeline to life, detecting arbitrage opportunities with sub-10ms latency. As I take a holiday break for Australia Day, I reflect on two months of AI-assisted development and the changing landscape of programming. Happy holidays to all!*

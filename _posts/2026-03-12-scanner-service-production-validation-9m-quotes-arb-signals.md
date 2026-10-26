@@ -398,6 +398,6 @@ The infrastructure phase of this project is complete. The next posts will cover 
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #29 in the Solana Trading System development series. A final consolidated quality assessment spanning 52 days, 11 test sessions, and 9.4M quotes confirms the scanner service is production ready — with multi-DEX arbitrage signal detection working correctly across different pool types and protocols during a live 10% SOL price rally.*

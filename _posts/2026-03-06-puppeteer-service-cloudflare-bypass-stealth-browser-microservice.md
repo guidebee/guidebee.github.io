@@ -632,6 +632,6 @@ The three non-obvious lessons that cost the most debugging time: `page.authentic
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #26 in the Solana Trading System development series. A deep dive into the puppeteer-service: a stealth headless Chromium microservice that enables any service in the trading stack to fetch data from bot-protected DeFi APIs through a clean HTTP sidecar.*

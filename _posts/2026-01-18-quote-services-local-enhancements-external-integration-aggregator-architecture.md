@@ -648,6 +648,6 @@ With sub-2ms local quote selection, comprehensive price difference tracking, and
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #22 in the Solana Trading System development series. The quote service ecosystem has been transformed with intelligent pool quality management, external quote integration, and real-time aggregation with confidence scoring. With comprehensive metrics and oracle-based price comparison, the system delivers optimal trade execution for high-frequency trading on Solana.*

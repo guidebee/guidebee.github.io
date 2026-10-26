@@ -332,6 +332,6 @@ The TypeScript implementation serves as a prototype, allowing rapid iteration on
 ## Connect
 
 - **GitHub**: [guidebee/solana-trading-system](https://github.com/guidebee/solana-trading-system)
-- **LinkedIn**: [James Shen](https://www.linkedin.com/in/james-shen-5190926/)
+- **LinkedIn**: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 *This is post #23 in the Solana Trading System development series. With infrastructure reaching 85% completion and the Quote Aggregator Service validated for production use, the project is ready to shift focus to the trading logic phase. The arbitrage scanner, planner, and executor will be developed in TypeScript as prototypes, validating strategies before potential Rust optimization for maximum performance.*
