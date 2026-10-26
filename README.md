@@ -1,27 +1,23 @@
-# Solana Trading System Development Blog
+# James Shen — guidebee.github.io
 
-**A technical blog documenting the development of a production-grade high-frequency trading system on Solana.**
-
-This blog chronicles the journey of building a complete trading infrastructure from scratch, covering architecture decisions, performance optimizations, observability, and real-world challenges.
-
-## About This Blog
-
-This site documents the development of an open-source Solana trading system. Topics covered include:
-
-- **Architecture**: Cross-language event systems, microservices, gRPC streaming
-- **Performance**: Sub-500ms execution latency, quote caching, real-time data pipelines
-- **Observability**: Prometheus metrics, Grafana dashboards, OpenTelemetry tracing
-- **Trading Strategies**: Arbitrage detection, market making, DCA, grid trading
-- **Infrastructure**: NATS JetStream, Docker, Kubernetes, RPC pooling
-- **Solana Development**: DEX integration (Jupiter, Raydium, Orca), Pyth oracles, WebSocket subscriptions
+**Personal site and technical blog of James Shen: software engineer and solution architect working across cloud, AI, blockchain, mobile, data, and embedded systems.**
 
 **Live Site**: https://guidebee.github.io
+
+## About This Site
+
+The site combines a portfolio, CV, and an ongoing technical blog. Posts cover:
+
+- **Solana Trading System**: building a production-grade, open-source high-frequency trading system (architecture, gRPC/NATS pipelines, sub-500ms latency, arbitrage, Prometheus/Grafana/OpenTelemetry observability)
+- **Game Engine & Super Morse**: the Guidebee game engine, the Engine 2 rule VM, platformer physics, level design, reverse-engineering a classic platformer with AI, and the Super Morse game economy, skins, and filters
+- **AI-Assisted Development**: building and reviving projects with AI agents (Claude Code, OpenClaw)
+- **Personal Notes**: career reflections and life outside code
 
 **Related Repository**: The trading system code is at C:\Trading\solana-trading-system (local development)
 
 ## Template Attribution
 
-This blog is built using the **[Academic Pages](https://github.com/academicpages/academicpages.github.io)** template, a GitHub Pages template for personal and professional portfolio-oriented websites. Academic Pages is based on [Minimal Mistakes Jekyll Theme](https://mmistakes.github.io/minimal-mistakes/) by Michael Rose.
+This site is built using the **[Academic Pages](https://github.com/academicpages/academicpages.github.io)** template, a GitHub Pages template for personal and professional portfolio-oriented websites. Academic Pages is based on [Minimal Mistakes Jekyll Theme](https://mmistakes.github.io/minimal-mistakes/) by Michael Rose.
 
 ## Getting Started
 
@@ -97,7 +93,7 @@ If you are using [Visual Studio Code](https://code.visualstudio.com/) you can us
 
 ## Connect
 
-Building open-source Solana trading infrastructure:
+Software, AI, and open-source projects:
 
 - **GitHub**: [github.com/guidebee](https://github.com/guidebee)
 - **LinkedIn**: [linkedin.com/in/guidebee](https://www.linkedin.com/in/guidebee/)
@@ -109,6 +105,6 @@ Building open-source Solana trading infrastructure:
 [![GitHub license](https://img.shields.io/github/license/guidebee/guidebee.github.io?color=blue)](https://github.com/guidebee/guidebee.github.io/blob/master/LICENSE)
 [![Live Site](https://img.shields.io/badge/live-guidebee.github.io-brightgreen)](https://guidebee.github.io)
 
-*Building open-source Solana trading infrastructure, one commit at a time.*
+*Building software and sharing what I learn, one commit at a time.*
 
 </div>
