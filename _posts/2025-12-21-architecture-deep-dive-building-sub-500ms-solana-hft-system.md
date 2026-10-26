@@ -1016,6 +1016,6 @@ The goal is **mastering production-grade HFT architecture**. If the system gener
 
 ---
 
-**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://linkedin.com/in/jamesshen)
+**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://www.linkedin.com/in/guidebee/)
 
 *This is post #15 in the Solana Trading System development series. Architecture assessment complete with grade A (93/100). Production-ready foundation established. Implementation phase begins now.*

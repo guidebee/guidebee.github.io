@@ -284,6 +284,6 @@ Every line of code written for this project is still in the repo. None of it goe
 
 ## Connect
 
-**GitHub**: [github.com/guidebee](https://github.com/guidebee) | **LinkedIn**: [linkedin.com/in/guidebee](https://linkedin.com/in/guidebee)
+**GitHub**: [github.com/guidebee](https://github.com/guidebee) | **LinkedIn**: [linkedin.com/in/guidebee](https://www.linkedin.com/in/guidebee/)
 
 *This is post #32 in the Solana Trading System development series — an honest account of what didn't work, what we learned, and where we're heading next.*

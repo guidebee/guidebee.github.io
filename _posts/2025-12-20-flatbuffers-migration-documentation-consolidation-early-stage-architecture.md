@@ -660,6 +660,6 @@ The FlatBuffers migration is complete. The strategy implementation begins now, a
 
 ---
 
-**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://linkedin.com/in/jamesshen)
+**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://www.linkedin.com/in/guidebee/)
 
 *This is post #13 in the Solana Trading System development series. Sometimes the most important work isn't writing code - it's creating clarity. Today was one of those days.*

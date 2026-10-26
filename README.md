@@ -100,7 +100,7 @@ If you are using [Visual Studio Code](https://code.visualstudio.com/) you can us
 Building open-source Solana trading infrastructure:
 
 - **GitHub**: [github.com/guidebee](https://github.com/guidebee)
-- **LinkedIn**: [linkedin.com/in/jamesshen](https://www.linkedin.com/in/jamesshen)
+- **LinkedIn**: [linkedin.com/in/guidebee](https://www.linkedin.com/in/guidebee/)
 - **Blog**: [guidebee.github.io](https://guidebee.github.io)
 
 ---

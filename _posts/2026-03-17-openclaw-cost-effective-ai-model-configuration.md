@@ -437,4 +437,4 @@ If your Azure model is responding to chat messages fine but tools silently don't
 
 ---
 
-*This is part of the OpenClaw + Solana Trading System development series. Follow along on [GitHub](https://github.com/guidebee) or connect on [LinkedIn](https://linkedin.com/in/guidebee).*
+*This is part of the OpenClaw + Solana Trading System development series. Follow along on [GitHub](https://github.com/guidebee) or connect on [LinkedIn](https://www.linkedin.com/in/guidebee/).*

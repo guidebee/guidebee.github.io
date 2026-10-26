@@ -1517,6 +1517,6 @@ The scanner infrastructure is now production-ready and easily extensible. The fr
 Building open-source Solana trading infrastructure. Follow the journey:
 
 - **GitHub**: [github.com/guidebee](https://github.com/guidebee)
-- **LinkedIn**: [linkedin.com/in/guidebee](https://www.linkedin.com/in/guidebee)
+- **LinkedIn**: [linkedin.com/in/guidebee](https://www.linkedin.com/in/guidebee/)
 
 *This is post #11 in the Solana Trading System development series. The project focuses on building production-grade, observable, and performant trading infrastructure on Solana with emphasis on high-frequency arbitrage strategies and extensible frameworks.*

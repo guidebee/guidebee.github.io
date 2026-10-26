@@ -1170,6 +1170,6 @@ Quote-service is production-ready. The architecture is sound, performance exceed
 
 ---
 
-**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://linkedin.com/in/jamesshen)
+**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://www.linkedin.com/in/guidebee/)
 
 *This is post #17 in the Solana Trading System development series. Quote-service is the critical data layer powering our HFT pipeline with sub-10ms quotes, 99.99% availability, and production-grade observability.*

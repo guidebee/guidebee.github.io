@@ -449,4 +449,4 @@ The planner validation campaign confirmed that the route-merge approach is solid
 
 ---
 
-*This is post #27 in the Solana Trading System development series. Follow along on [GitHub](https://github.com/guidebee) or [LinkedIn](https://linkedin.com/in/guidebee).*
+*This is post #27 in the Solana Trading System development series. Follow along on [GitHub](https://github.com/guidebee) or [LinkedIn](https://www.linkedin.com/in/guidebee/).*

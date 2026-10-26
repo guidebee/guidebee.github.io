@@ -926,6 +926,6 @@ For solo developers building HFT systems, **the temptation to skip infrastructur
 
 ---
 
-**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://linkedin.com/in/jamesshen)
+**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://www.linkedin.com/in/guidebee/)
 
 *This is post #14 in the Solana Trading System development series. Infrastructure complete. Strategy implementation begins. The foundation is solid - time to build.*

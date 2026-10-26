@@ -1303,7 +1303,7 @@ The next phase will focus on adding observability to other services (scanner-ser
 ## Connect
 
 - **GitHub:** [github.com/guidebee](https://github.com/guidebee)
-- **LinkedIn:** [linkedin.com/in/guidebee](https://linkedin.com/in/guidebee)
+- **LinkedIn:** [linkedin.com/in/guidebee](https://www.linkedin.com/in/guidebee/)
 
 ---
 

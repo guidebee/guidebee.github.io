@@ -654,7 +654,7 @@ As we start 2026, I'm incredibly excited about where this system is headed. The 
 
 **Connect**:
 - GitHub: [@guidebee](https://github.com/guidebee)
-- LinkedIn: [James Shen](https://linkedin.com/in/guidebee)
+- LinkedIn: [James Shen](https://www.linkedin.com/in/guidebee/)
 
 ---
 

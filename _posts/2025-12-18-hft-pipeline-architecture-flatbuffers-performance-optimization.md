@@ -1174,6 +1174,6 @@ The system is now ready for implementation and production deployment as a **mult
 
 ---
 
-**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://linkedin.com/in/jamesshen)
+**Connect**: [GitHub](https://github.com/guidebee) | [LinkedIn](https://www.linkedin.com/in/guidebee/)
 
 *This is post #12 in the Solana Trading System development series. Each post documents real architectural decisions, performance optimizations, and lessons learned building production trading infrastructure.*

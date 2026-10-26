@@ -169,4 +169,4 @@ I do not think that model is unique to me or to this project. I think it is how 
 
 ---
 
-*This is post #28 in the Solana Trading System development series. Follow along on [GitHub](https://github.com/guidebee) or [LinkedIn](https://linkedin.com/in/guidebee).*
+*This is post #28 in the Solana Trading System development series. Follow along on [GitHub](https://github.com/guidebee) or [LinkedIn](https://www.linkedin.com/in/guidebee/).*

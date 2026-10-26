@@ -266,6 +266,6 @@ The OpenClaw side could also be extended to pro-actively scan the daily data aft
 
 ---
 
-**Connect**: [GitHub](https://github.com/guidebee) · [LinkedIn](https://linkedin.com/in/jamesshenjava)
+**Connect**: [GitHub](https://github.com/guidebee) · [LinkedIn](https://www.linkedin.com/in/guidebee/)
 
 *This is post #28 in the Solana Trading System development series. This post demonstrates OpenClaw as a general-purpose AI agent gateway — the same daemon used for Solana HFT monitoring repurposed to deliver China stock technical analysis via Telegram, built with Claude Code in a fraction of the time a comparable project took without AI assistance.*

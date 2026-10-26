@@ -754,6 +754,6 @@ The combination of a free local model (DeepSeek R1) for routine heartbeats and a
 
 ---
 
-**Connect**: [GitHub](https://github.com/guidebee) · [LinkedIn](https://linkedin.com/in/jamesshenjava)
+**Connect**: [GitHub](https://github.com/guidebee) · [LinkedIn](https://www.linkedin.com/in/guidebee/)
 
 *This is post #27 in the Solana Trading System development series. This post covers setting up OpenClaw as an AI-powered operational layer for monitoring and controlling the trading system's Docker services via Telegram, with a security-first architecture that keeps the AI bot completely isolated from private keys and wallet credentials.*

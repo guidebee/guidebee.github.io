@@ -43,4 +43,4 @@ The Solana trading-system series remains an important case study here: it docume
 - Read my [technical writing](/year-archive/) for architecture notes, implementation lessons, and development experiments.
 - Browse my [portfolio](/portfolio/) for projects across AI, web, blockchain, mobile, data, and embedded systems.
 - Review my [CV](/cv/) for my technical background and professional experience.
-- Visit [GitHub](https://github.com/guidebee) or [LinkedIn](https://www.linkedin.com/in/guidebee) to see more of my work and connect.
+- Visit [GitHub](https://github.com/guidebee) or [LinkedIn](https://www.linkedin.com/in/guidebee/) to see more of my work and connect.
