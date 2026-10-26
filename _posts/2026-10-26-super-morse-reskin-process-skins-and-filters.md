@@ -21,6 +21,13 @@ Post #45 in the [Super Morse](/posts/2026/09/ai-assisted-platformer-reverse-engi
 series. The [previous post](/posts/2026/10/super-morse-game-economy-design/) covered the proposed
 game economy. This one is about art: how the game gets a new look, and what that costs.
 
+<video controls muted loop playsinline preload="metadata" poster="../images/supermorse_skins_overview.jpg" style="width:100%">
+  <source src="../images/supermorse_skins_tour.mp4" type="video/mp4">
+  Your browser does not play MP4 video. <a href="../images/supermorse_skins_tour.mp4">Download the skin tour</a>.
+</video>
+
+*The forest scene in all eight skins.*
+
 ![The forest scene in all eight skins](../images/supermorse_skins_overview.jpg)
 
 ## TL;DR
@@ -76,6 +83,13 @@ level-select button, and a `debugOnly` flag. A skin stays debug-only until it is
 
 All screenshots were taken on a Solana Seeker phone, in five biomes: forest, desert, ice, dungeon and
 underwater. They come from the debug build, so a DEBUG button sits in the control row.
+
+<video controls muted playsinline preload="metadata" poster="../images/supermorse_skin_reskin.jpg" style="width:100%">
+  <source src="../images/supermorse_skins_all_biomes.mp4" type="video/mp4">
+  Your browser does not play MP4 video. <a href="../images/supermorse_skins_all_biomes.mp4">Download the full tour</a>.
+</video>
+
+*All forty screenshots: eight skins, five biomes each (about a minute).*
 
 ### Default
 
@@ -282,6 +296,13 @@ phone (audio by ear, revive, the guide hand) and signs off. Only then does `debu
 
 A full skin costs days. Often what you want is a different *mood* for art that already exists: the
 same level at night, an old-photograph look, a retro mode. That is a shader's job, not an artist's.
+
+<video controls muted loop playsinline preload="metadata" poster="../images/supermorse_filter_midautumn_none.jpg" style="width:100%">
+  <source src="../images/supermorse_filters_midautumn.mp4" type="video/mp4">
+  Your browser does not play MP4 video. <a href="../images/supermorse_filters_midautumn.mp4">Download the filter tour</a>.
+</video>
+
+*One Mid-Autumn Festival scene under every filter.*
 
 ![Mid-Autumn Festival under all sixteen filters](../images/supermorse_filters_midautumn.jpg)
 
