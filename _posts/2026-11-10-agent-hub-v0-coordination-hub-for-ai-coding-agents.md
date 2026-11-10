@@ -42,6 +42,33 @@ when I let that team run on its own for a day, and what I had to build to trust 
 - **A dashboard shows what it costs.** In the last 24 hours: 851 runs, 70.6 agent-hours, 211 of 213 asks
   closed, a median of 1.1 minutes to claim, and about US$30 of metered DeepSeek usage.
 
+**Agent Hub does not try to make models smarter. It tries to make teams of models operationally manageable.**
+
+## At a glance
+
+```
+        Claude Code                      Codex
+   (architect, reviewer,         (developers, tester,
+        auditor)                       manager)
+              \                         /
+               \                       /
+             +-----------------------------+
+             |          Agent Hub          |
+             |-----------------------------|
+             |  Channels    who said what  |
+             |  Claims      who owns what  |
+             |  Routing     who runs next  |
+             |  Costs       what it spent  |
+             |  Experience  (next step)    |
+             +-----------------------------+
+                            |
+                         DeepSeek
+                 (metered safety net, same roles)
+```
+
+The first four layers run today and are what this post is about. **Experience**, meaning lessons from earlier
+work that an agent can reuse, is the experiment that comes next.
+
 ## What changed since part 1
 
 Part 1 ended with a single Python file and an append-only JSONL log. It worked, and the team used it every
@@ -340,6 +367,12 @@ Part 1 turned six sessions into a team. Part 2 is about letting that team run wi
 cannot lose a message, a task pool the hub computes, routing that spends prepaid quota first and survives
 running out of it, and a dashboard that says what all of it costs. The surprise was how much measuring
 mattered. The dashboard was meant to show performance; it also found the waste and two bugs.
+
+These numbers prove coordination at scale, not better software outcomes. Fast claims and closed asks show the
+team runs; they do not show the code is better than one careful agent would write. The coordination,
+routing, storage and observability layers are now real and useful. So the open question is no longer "can
+agent teams run?" but "can validated experience make those teams measurably better?" That is the next
+experiment.
 
 ---
 
