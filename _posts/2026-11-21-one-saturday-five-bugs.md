@@ -170,8 +170,8 @@ Every number on a public dashboard needs a definition, and "does it add up?" is 
 ## Scope, honestly
 
 - **Jobseeker is a pilot for one person.** I am that person. It has no customers and no other users.
-- **The pilot is a week old.** I have left out its other performance numbers because I have not verified
-  them for publication.
+- **Other numbers are left out.** I have left out the pilot's other performance numbers because I have not
+  verified them for publication.
 - **The team is still learning.** Five bugs in a day is not a boast. The stubbed port probe and the scores
   nobody compared with their input were our mistakes.
 - **The fixes do not prove the code is now correct.** They show that these five defects were found and
